@@ -6,7 +6,6 @@ from dj_rest_auth.registration.views import ResendEmailVerificationView, Registe
 from dj_rest_auth.views import LoginView, LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
-from django_base.testView import CheckResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,9 +21,5 @@ urlpatterns = [
     # Apps
     path('api/users/', include('users.urls')),
     path('api/blockchain/', include('blockchain.urls')),
-
-    # Test
-    path('test/', CheckResponse.as_view(), name='test'),
-
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -31,6 +31,9 @@ YOUR_APP_NAME=env('YOUR_APP_NAME')
 
 IS_SERVER = env.bool('IS_SERVER', default=False)
 
+CLIENT_ID = env('CLIENT_ID')
+CLIENT_SECRET = env('CLIENT_SECRET')
+
 ALLOWED_HOSTS = ['*']
 
 
@@ -55,6 +58,8 @@ THIRD_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'corsheaders',
+    'sslserver',
+    'django_extensions',
     # 'storages', # <--AWS S3
 ]
 

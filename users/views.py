@@ -5,6 +5,50 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.utils.translation import gettext_lazy as _
 from users.serializers import UserProfileSerializer, UserSerializer
+# import view
+from django.views import View
+from django.shortcuts import render
+from django_base.settings import CLIENT_ID, CLIENT_SECRET, BASE_URL
+import requests
+from users.models import User
+from users.utils import get_user_email, create_user_without_password
+
+from rest_framework.authtoken.models import Token
+
+class LoginView(View):
+    def get(self, request):
+        return render(request, 'login.html')
+    
+
+class RecepcionOauthView(View):
+    def get(self, request):
+        print("GET: ", request.GET)
+        if 'code' in request.GET:
+            code = request.GET.get('code') 
+            url = 'https://127.0.0.1:8001/o/token/'
+            # print("URL: ", f'{BASE_URL}/api/users/oauth/')
+            data = {
+                'code': code,
+                'client_id': CLIENT_ID,
+                'client_secret': CLIENT_SECRET,
+                # 'redirect_uri': f'{BASE_URL}/api/users/oauth/',
+                'redirect_uri': 'https://localhost:8000/api/users/oauth/',
+                'grant_type': 'authorization_code'
+            }
+            r = requests.post(url, data=data, verify=False)
+            email = get_user_email(r.json()['access_token'])
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+            else:
+                user = create_user_without_password(email)
+            
+            # login
+            token, created = Token.objects.get_or_create(user=user)
+            print (token, created)
+
+            return render(request, 'home.html')
+
+
 
 
 class UserProfileMe(APIView):
