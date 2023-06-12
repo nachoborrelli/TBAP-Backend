@@ -60,7 +60,7 @@ THIRD_APPS = [
 
 MY_APPS = [
     'users',
-
+    'blockchain',
 ]
 
 INSTALLED_APPS = BASE_APPS + THIRD_APPS + MY_APPS
@@ -259,3 +259,7 @@ CORS_ORIGIN_WHITELIST = [
 
 #<------------------S3------------------>
 
+
+#<------------Blockchain envs------------>
+CONTRACT_ADDRESS = env('CONTRACT_ADDRESS')
+SIGNER_WALLET_PRIV_KEY = env('SIGNER_WALLET_PRIV_KEY')

@@ -21,6 +21,7 @@ urlpatterns = [
 
     # Apps
     path('api/users/', include('users.urls')),
+    path('api/blockchain/', include('blockchain.urls')),
 
     # Test
     path('test/', CheckResponse.as_view(), name='test'),
