@@ -4,11 +4,12 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.utils.translation import gettext_lazy as _
-from users.serializers import UserProfileSerializer, UserSerializer
+from users.serializers import UserSerializer
+from regular_user.serializers import UserProfileSerializer
 # import view
 from django.views import View
 from django.shortcuts import render
-from django_base.settings import CLIENT_ID, CLIENT_SECRET, BASE_URL
+from django_base.settings import CLIENT_ID, CLIENT_SECRET
 import requests
 from users.models import User
 from users.utils import get_user_email, create_user_without_password
@@ -47,8 +48,6 @@ class RecepcionOauthView(View):
             print (token, created)
 
             return render(request, 'home.html')
-
-
 
 
 class UserProfileMe(APIView):

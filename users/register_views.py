@@ -3,10 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.account.views import ConfirmEmailView
-from dj_rest_auth.registration.views import SocialLoginView
 from dj_rest_auth.views import PasswordChangeView
 from dj_rest_auth.registration.serializers import VerifyEmailSerializer
 from allauth.account.models import EmailAddress
@@ -23,22 +20,13 @@ from datetime import timedelta
 from django.utils import timezone
 
 
-from users.models import UserProfile, User, TokenRecovery
+from users.models import User, TokenRecovery
 from users.utils import get_random_string
 
 @receiver(post_save, sender=User)
-def create_profile(sender, instance, **kwargs):
-    if kwargs['created']:
-        UserProfile.objects.create(user=instance)
-        if instance.is_staff:
+def admin_bypass(sender, instance, **kwargs):
+        if kwargs['created'] and instance.is_staff:
             EmailAddress.objects.create(user=instance, email=instance.email, verified=True, primary=True)
-
-
-class FacebookLogin(SocialLoginView):
-    adapter_class = FacebookOAuth2Adapter
-
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
 
 
 class EmailVerification(APIView, ConfirmEmailView):

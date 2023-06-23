@@ -66,6 +66,9 @@ THIRD_APPS = [
 MY_APPS = [
     'users',
     'blockchain',
+    'organization',
+    'user_admin',
+    'regular_user'
 ]
 
 INSTALLED_APPS = BASE_APPS + THIRD_APPS + MY_APPS

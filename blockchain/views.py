@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from blockchain import utils
-from users.serializers import UserProfileSerializer, UserSerializer
+from regular_user.serializers import UserProfileSerializer
+
 
 
 class TokenClaims(APIView):
