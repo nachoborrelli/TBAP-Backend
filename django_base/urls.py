@@ -23,6 +23,6 @@ urlpatterns = [
     path('api/blockchain/', include('blockchain.urls')),
     path('api/organization/', include('organization.urls')),
     path('api/admin/', include('user_admin.urls')),
-    # path('api/regular_user/', include('regular_user.urls')),
+    path('api/regular_user/', include('regular_user.urls')),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils.translation import gettext_lazy as _
 from users.serializers import UserSerializer
 from regular_user.serializers import UserProfileSerializer
-# import view
 from django.views import View
 from django.shortcuts import render
 from django_base.settings import CLIENT_ID, CLIENT_SECRET
@@ -51,30 +50,26 @@ class RecepcionOauthView(View):
 
 
 class UserProfileMe(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        if request.user.is_authenticated:
-            profile_serializer = UserProfileSerializer(request.user.user_profile)
-            user_serializer = UserSerializer(request.user) 
-            return Response({'user':user_serializer.data, 'user_profile':profile_serializer.data})
-        else:
-            return Response({'data': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        profile_serializer = UserProfileSerializer(request.user.user_profile)
+        user_serializer = UserSerializer(request.user) 
+        return Response({'user':user_serializer.data, 'user_profile':profile_serializer.data})
     
     def patch(self, request):
-        if request.user.is_authenticated:
-            user_serializer = UserSerializer(data=request.data, instance=request.user, partial=True)
-            if user_serializer.is_valid():
-                profile_serializer = UserProfileSerializer(data=request.data, instance=request.user.user_profile, partial=True)
-                if profile_serializer.is_valid():
-                    user_serializer.save()
-                    profile_serializer.save()
+        user_serializer = UserSerializer(data=request.data, instance=request.user, partial=True)
+        if user_serializer.is_valid():
+            profile_serializer = UserProfileSerializer(data=request.data, instance=request.user.user_profile, partial=True)
+            if profile_serializer.is_valid():
+                user_serializer.save()
+                profile_serializer.save()
 
-                    return Response({'user':user_serializer.data, 'user_profile':profile_serializer.data})
-        
-                else:
-                    return Response(profile_serializer.errors)
+                return Response({'user':user_serializer.data, 'user_profile':profile_serializer.data})
+    
             else:
-                return Response(user_serializer.errors)
+                return Response(profile_serializer.errors)
         else:
-            return Response({'data': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(user_serializer.errors)
 
 

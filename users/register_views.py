@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from datetime import timedelta
 from django.utils import timezone
+from regular_user.models import UserProfile
 
 
 from users.models import User, TokenRecovery
@@ -25,8 +26,10 @@ from users.utils import get_random_string
 
 @receiver(post_save, sender=User)
 def admin_bypass(sender, instance, **kwargs):
-        if kwargs['created'] and instance.is_staff:
-            EmailAddress.objects.create(user=instance, email=instance.email, verified=True, primary=True)
+        if kwargs['created']:
+            UserProfile.objects.create(user=instance)
+            if instance.is_staff:
+                EmailAddress.objects.create(user=instance, email=instance.email, verified=True, primary=True)
 
 
 class EmailVerification(APIView, ConfirmEmailView):

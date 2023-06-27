@@ -18,5 +18,5 @@ class UserProfile(models.Model):
         verbose_name_plural = 'Regular Users'
 
 class UserCourses(models.Model):
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='users_courses')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users_courses')
     course = models.ForeignKey('user_admin.Course', on_delete=models.CASCADE, related_name='users_courses')

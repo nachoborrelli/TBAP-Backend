@@ -16,7 +16,8 @@ class User(AbstractUser):
 
     @property 
     def is_admin(self):
-        return hasattr(self, 'admin')
+        from user_admin.models import Admin
+        return Admin.objects.filter(user=self).exists()
 
 
 SEX_CHOICES = (

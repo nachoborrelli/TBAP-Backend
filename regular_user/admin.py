@@ -7,4 +7,4 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(UserCourses)
 class UserCoursesAdmin(admin.ModelAdmin):
-    list_display=['user_profile', 'course']
+    list_display=['user', 'course']

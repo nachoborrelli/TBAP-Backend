@@ -7,10 +7,10 @@ class Organization(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to = 'organization_logo', default = 'organization_logo/default.jpg', blank = True, null = True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
-
-class InvitationToOrganization(models.Model):
+class InvitationToBecameUserAdmin(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Accepted', 'Accepted'),
