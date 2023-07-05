@@ -320,3 +320,4 @@ $RECYCLE.BIN/
 data
 cert.pem
 key.pem
+run_server_script.ps1

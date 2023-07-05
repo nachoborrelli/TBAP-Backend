@@ -1,8 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from blockchain import utils
-from regular_user.serializers import UserProfileSerializer
+from blockchain import utils, repository
 
 
 
@@ -22,7 +21,6 @@ class TokenClaims(APIView):
                     }
         token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
                                                               token_data['nonce'], token_data['uri'])
-        token_data['test_signature']= utils.create_test_signature(token_data['issuerId'])
         return Response(token_data)
     
     #POST: claim tokens for user, return signature for minting
@@ -34,11 +32,13 @@ class TokenClaims(APIView):
         #1. check user auth
         #2. get user profile & tokens
         #3. check if token exists
-        #4. DONE - get signature for minting
+        #4. DONE - create signature 
+        #5. save in bd
+        #6. return signature
 
         #example token_data
         token_data = {
-                    'title': 'test_title',
+                    'title': 'Backend TEST',
                     'issuerId': 1,
                     'nonce': 1,
                     'uri': 'test_uri'
@@ -46,3 +46,10 @@ class TokenClaims(APIView):
         token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
                                                               token_data['nonce'], token_data['uri'])
         return Response(token_data)
+    
+class FetchData(APIView):
+    def get(self, request):
+        # response = repository.get_reward_overview(1)
+        # response = repository.get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481")
+        # return Response(response)
+        return Response("Only for testing purposes. :)")
