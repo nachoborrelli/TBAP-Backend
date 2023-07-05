@@ -15,6 +15,9 @@ from user_admin.models import AdminCourses, InvitationToCourseAsUser, Invitation
 from organization.models import InvitationToBecameUserAdmin,Organization
 from organization.serializers import InvitationToBecameUserAdminSerializer
 
+from blockchain.models import TokenGroup
+from blockchain.serializers import TokenGroupSerializer
+
 from user_admin.models import Admin
 
 
@@ -67,14 +70,10 @@ class CourseView(APIView):
                 return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             organization_id = request.GET.get('organization_id')
             organization_courses = Course.objects.filter(organization=organization_id)  
-            print(organization_courses)
-            # Get only courses that the admin is on it
             courses = []
             for course in organization_courses:
-                print(course)
-                print(AdminCourses.objects.filter(course=course).first().admin.user)
-                print(request.user)
-                if AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
+                if AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization.id == int(organization_id)):
                     courses.append(course)
             serializer = CourseSerializer(courses, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -83,8 +82,17 @@ class CourseView(APIView):
 
     def post(self, request):
         try:
+            data = request.data.copy()
+            if not 'organization_id' in data:
+                return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            organization_id = data.get('organization_id')
+            organization = get_object_or_404(Organization, id=organization_id)
+            if not Admin.objects.filter(user=request.user, organization=organization).exists():
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
-            serializer = CourseSerializer(data=request.data)
+            data['organization'] = organization_id
+
+            serializer = CourseSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({'message': 'Course created successfully'}, status=status.HTTP_201_CREATED)
@@ -94,6 +102,55 @@ class CourseView(APIView):
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
   
+
+class TokenGroupView(APIView):
+    permission_classes = (IsAdmin,)
+
+    def get(self, request):
+        try:
+            if not 'course_id' in request.GET:
+                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            course_id = request.GET.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization == course.organization)):
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            token_groups = TokenGroup.objects.filter(course=course)
+            serializer = TokenGroupSerializer(token_groups, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            data = request.data.copy()
+            if not 'course_id' in data:
+                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            course_id = data.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+
+            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization == course.organization)):
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            data["course"] = course_id
+            data["created_by"] = request.user.id
+            serializer = TokenGroupSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save(course=course)
+                return Response({
+                    'message': 'Token group created successfully',
+                    'data': serializer.data
+                    }, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 def send_email_to_users(course_name, is_admin, users_list):
     extra_text = ' as admin' if is_admin else ''
     subject = f'TBAP - Invitation to join course{extra_text}'
@@ -132,8 +189,6 @@ class SendInvitationToJoinCourseAsAdmin(APIView):
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        
-
 
 class SendInvitationToJoinCourseAsUser(APIView):
     permission_classes = (IsAdmin,)
@@ -241,8 +296,6 @@ class SendInvitationToJoinCourseAsUser(APIView):
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-
-
 
 class ResponseInvitationToJoinCourseAsAdminView(APIView):
     permission_classes = (IsAdmin,)

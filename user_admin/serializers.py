@@ -12,7 +12,7 @@ class AdminSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ('name', 'description')
+        fields = '__all__'
 
 class AdminCoursesSerializer(serializers.ModelSerializer):
     admin = AdminSerializer()

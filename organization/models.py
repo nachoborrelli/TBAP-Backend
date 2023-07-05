@@ -3,8 +3,8 @@ from users.models import User
 
 # Create your models here.
 class Organization(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='organization') #founder
-    name = models.CharField(max_length=100, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='organization', blank=True) #founder
+    name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     logo = models.ImageField(upload_to = 'organization_logo', default = 'organization_logo/default.jpg', blank = True, null = True)
     created_at = models.DateTimeField(auto_now_add=True)
