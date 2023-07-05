@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from blockchain import utils, repository
+from blockchain import utils, repository, serializers
 
 
 
@@ -45,11 +45,24 @@ class TokenClaims(APIView):
                     }
         token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
                                                               token_data['nonce'], token_data['uri'])
-        return Response(token_data)
+        return Response(token_data)  
     
-class FetchData(APIView):
-    def get(self, request):
+class TokenURI(APIView):
+    def get(self, request, tokenId):
+        serializer = serializers.TokenURIRequestSerializer(data={'tokenId': tokenId})
+        if serializer.is_valid():
+            blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
+            if not blockchain_data:
+                return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
+            #TODO: add bd data to response
+            return Response(blockchain_data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+# class FetchData(APIView):
+#     def get(self, request):
         # response = repository.get_reward_overview(1)
         # response = repository.get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481")
         # return Response(response)
-        return Response("Only for testing purposes. :)")
+        # return Response("Only for testing purposes. :)")  

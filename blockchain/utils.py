@@ -35,7 +35,6 @@ def create_mint_signature(title, issuerId, nonce, uri):
     """ 
     Signature fo contract method:
         function mint(string calldata title, uint16 issuerId, uint256 nonce, string memory uri, bytes calldata signature )
-        keccak256("\x19Ethereum Signed Message:\n" + len(message) + message))
     """
     sig = web3.Web3.solidity_keccak([ "string", "uint16", "uint256", "string", "address" ],
                                 [ title, issuerId, nonce, uri, CONTRACT_ADDRESS])
@@ -47,25 +46,3 @@ def create_mint_signature(title, issuerId, nonce, uri):
 
 def verify_message(message, signature, address):
     return w3.eth.account.recover_message(message, signature=signature) == address
-
-
-#example backend method
-# def sign_item_crafting(self, address, item_data):
-#     nonce = w3_data_repository.get_new_crafting_nonce()
-#     contract_address = ITEM_CONTRACT_ADDRESS
-#     sig = web3.Web3.soliditySha3([ "address", "uint16", "uint16", "uint8", "uint256", "address" ],
-#                                             [ address, item_data['classId'], item_data['itemId'],
-#                                                 item_data['tier'], nonce, contract_address ])
-#     message = encode_defunct(hexstr=sig.hex())
-#     signed_message = w3.eth.account.sign_message(message, os.environ.get('TESTNET_W3_WALLET_PRIV_KEY'))
-#     signature = web3.Web3.toHex(signed_message.signature)
-#     return signature, nonce
-
-# example hardhat js method
-# function signMintData(tokenData){
-#     const account = getSignerAccount();
-#     const message = ethers.utils.solidityKeccak256(
-#         [ "string", "uint16", "uint256", "string", "address" ], 
-#         [ tokenData.title, tokenData.issuerId, tokenData.nonce, tokenData.uri, getEnvVariable("NFT_CONTRACT_ADDRESS") ]);
-#     return account.signMessage(ethers.utils.arrayify(message));
-# }

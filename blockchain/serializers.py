@@ -9,3 +9,6 @@ class TokenGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = TokenGroup
         fields = '__all__'
+    
+class TokenURIRequestSerializer(serializers.Serializer):
+    tokenId = serializers.IntegerField()

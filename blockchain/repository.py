@@ -19,7 +19,8 @@ def execute_function(function_name, *args):
     
 def get_reward_overview(tokenId):
     """Returns the reward overview for a given tokenId"""
-    return utils.blockchain_to_dict(execute_function("getRewardOverview",int(tokenId)))
+    data = execute_function("getRewardOverview",int(tokenId))
+    return utils.blockchain_to_dict(data) if data != ['', 0, 0] else None
                                     
 def get_rewards_data_for_address(address):
     """Returns the rewards *RAW* data for a given address"""
