@@ -35,13 +35,13 @@ def create_mint_signature(title, issuerId, nonce, uri):
     """ 
     Signature fo contract method:
         function mint(string calldata title, uint16 issuerId, uint256 nonce, string memory uri, bytes calldata signature )
+        keccak256("\x19Ethereum Signed Message:\n" + len(message) + message))
     """
     sig = web3.Web3.solidity_keccak([ "string", "uint16", "uint256", "string", "address" ],
                                 [ title, issuerId, nonce, uri, CONTRACT_ADDRESS])
     message = encode_defunct(sig)
     signed_message = w3.eth.account.sign_message(message, SIGNER_WALLET_PRIV_KEY)
     signature = web3.Web3.to_hex(signed_message.signature)
-    print(signature)
     # print(verify_message(message, signature, WALLET_PUB_ADDRESS))
     return signature
 

@@ -14,7 +14,7 @@ class TokenClaims(APIView):
         # else:
         #     return Response({'data': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         token_data = {
-                    'title': 'test_title',
+                    'title': 'Backend TEST',
                     'issuerId': 1,
                     'nonce': 1,
                     'uri': 'test_uri'
