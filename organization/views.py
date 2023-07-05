@@ -5,16 +5,61 @@ from rest_framework import status
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
+from rest_framework.permissions import IsAdminUser
 from organization.permissions import IsOrganization
 from user_admin.permissions import IsAdmin
 
 from organization.models import InvitationToBecameUserAdmin
-from user_admin.models import Admin
 from organization.models import Organization
+from organization.serializers import OrganizationSerializer
+from user_admin.models import Admin
 from user_admin.serializers import AdminSerializer
+
+from users.models import User
+from user_admin.models import Admin
+from django_base.utils import get_random_password
 
 
 from django.shortcuts import get_object_or_404
+
+
+class CreateOrganization(APIView):
+    '''Create an organization'''
+    permission_classes = (IsAdminUser,)
+
+    def post(self, request):
+        try:
+            data = request.data.copy()
+            if not "email" in data:
+                return Response({'error': 'email is required'}, status=status.HTTP_400_BAD_REQUEST)
+            email = data.get('email')
+            if User.objects.filter(email=email).exists():
+                return Response({'error': 'This email is already in use'}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+
+            serializer = OrganizationSerializer(data=request.data)
+            if serializer.is_valid():
+                password = get_random_password(length=10)
+                user = User.objects.create_user(email=email, username=email, password=password)
+                # verify user email
+                user.emailaddress_set.create(email=email, primary=True, verified=True)
+                user_data = {
+                    'email': email,
+                    'password': password,
+                }
+                serializer.save(user=user)
+                Admin.objects.create(user=user, organization=serializer.instance)
+
+                return Response({
+                                "user": user_data, 
+                                "organization":
+                                serializer.data}, 
+                                status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SendAdminInvitation(APIView):
