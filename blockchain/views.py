@@ -7,6 +7,7 @@ from blockchain import utils, repository, serializers
 
 class TokenClaims(APIView):
 
+
     #TODO: return tokens claimable by user
     def get(self, request):
         # if request.user.is_authenticated:
@@ -20,7 +21,7 @@ class TokenClaims(APIView):
                     'uri': 'test_uri'
                     }
         token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
-                                                              token_data['nonce'], token_data['uri'])
+                                                                token_data['nonce'], token_data['uri'])
         return Response(token_data)
     
     #POST: claim tokens for user, return signature for minting

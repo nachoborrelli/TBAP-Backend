@@ -89,7 +89,7 @@ class SendAdminInvitation(APIView):
 
 
 class AdminsOfOrganization(APIView):
-    '''Get all admins of an organization'''
+    '''Get all admins of a given organization'''
     permission_classes = (IsAdmin,)
 
     def get(self, request):

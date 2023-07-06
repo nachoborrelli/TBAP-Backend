@@ -16,13 +16,15 @@ from users.utils import get_user_email, create_user_without_password
 from rest_framework.authtoken.models import Token
 
 class LoginView(View):
+    """
+    Login view, this is just for TEST, this view should be in the frontend
+    """
     def get(self, request):
         return render(request, 'login.html')
     
 
 class RecepcionOauthView(View):
     def get(self, request):
-        print("GET: ", request.GET)
         if 'code' in request.GET:
             code = request.GET.get('code') 
             url = 'https://127.0.0.1:8001/o/token/'
@@ -43,13 +45,18 @@ class RecepcionOauthView(View):
                 user = create_user_without_password(email)
             
             # login
-            token, created = Token.objects.get_or_create(user=user)
+            token, created = Token.objects.get_or_create(user=user)     # access token
             print (token, created)
 
             return render(request, 'home.html')
 
 
 class UserProfileMe(APIView):
+    """
+    View to get user and user profile data from the current user
+    get: return user and user profile data
+    patch: update user and user profile data
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

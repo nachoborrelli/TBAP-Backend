@@ -14,6 +14,10 @@ from django.shortcuts import get_object_or_404
 
 
 class InvitationToJoinCourseView(APIView):
+    """
+    get: return all invitations to join a course as a regular user for the current user
+    post: accept or reject an invitation to join a course as a regular user
+    """
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -56,6 +60,9 @@ class InvitationToJoinCourseView(APIView):
             
 
 class UserCoursesView(APIView):
+    """
+    View to get all courses of the current user
+    """
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):

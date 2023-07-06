@@ -25,7 +25,11 @@ from users.models import User, TokenRecovery
 from users.utils import get_random_string
 
 @receiver(post_save, sender=User)
-def admin_bypass(sender, instance, **kwargs):
+def user_profile_creator(sender, instance, **kwargs):
+        """
+        This function is used to create a user profile when a user is created 
+        and also to create an email address when a user is created if the user is staff
+        """
         if kwargs['created']:
             UserProfile.objects.create(user=instance)
             if instance.is_staff:
