@@ -5,10 +5,17 @@ from blockchain.models import TokenGroup
 
 
 class TokenGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TokenGroup
+        fields = '__all__'
+    
+
+class TokenGroupSerializerList(serializers.ModelSerializer):
     created_by = UserSerializer()
     class Meta:
         model = TokenGroup
         fields = '__all__'
+
     
 class TokenURIRequestSerializer(serializers.Serializer):
     tokenId = serializers.IntegerField()

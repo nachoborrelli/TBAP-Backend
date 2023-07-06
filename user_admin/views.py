@@ -112,63 +112,9 @@ class CourseView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+
         
-
-
-class TokenGroupView(APIView):
-    """
-    View to create and list token groups (you can think of token groups as classes,
-    each token group has a list of students who can actualy claim the token on the blockchain)
-
-    get: return all token groups of a course
-        # TODO: if the user is not admin of the course, return only the token groups that the user is in
-    post: create a new token group
-    """
-    permission_classes = (IsAdmin,)
-
-    def get(self, request):
-        try:
-            if not 'course_id' in request.GET:
-                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-            course_id = request.GET.get('course_id')
-            course = get_object_or_404(Course, id=course_id)
-            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
-                    (request.user.is_organization and request.user.organization == course.organization)):
-                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
-            
-            token_groups = TokenGroup.objects.filter(course=course)
-            serializer = TokenGroupSerializer(token_groups, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def post(self, request):
-        try:
-            data = request.data.copy()
-            if not 'course_id' in data:
-                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-            course_id = data.get('course_id')
-            course = get_object_or_404(Course, id=course_id)
-
-            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
-                    (request.user.is_organization and request.user.organization == course.organization)):
-                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
-            
-            data["course"] = course_id
-            data["created_by"] = request.user.id
-            serializer = TokenGroupSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save(course=course)
-                return Response({
-                    'message': 'Token group created successfully',
-                    'data': serializer.data
-                    }, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-            
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def send_email_to_users(course_name, is_admin, users_list):

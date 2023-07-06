@@ -3,7 +3,7 @@ from users.models import User
 from user_admin.models import Course
 
 
-#TODO Agregar nonce tracker
+# TODO Agregar nonce tracker
 
 class TokenGroup(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
