@@ -13,7 +13,6 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
-        read_only_fields = ('organization',)
 
 class AdminCoursesSerializer(serializers.ModelSerializer):
     admin = AdminSerializer()
@@ -34,5 +33,5 @@ class InvitationToCourseAsAdminSerializer(serializers.ModelSerializer):
 class InvitationToCourseAsUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvitationToCourseAsUser
-        fields = ('course', 'email', 'status', 'created_at')
+        fields = '__all__'
         read_only_fields = ('status', 'created_at')

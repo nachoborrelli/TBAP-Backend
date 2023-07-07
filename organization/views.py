@@ -5,7 +5,7 @@ from rest_framework import status
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from organization.permissions import IsOrganization
 from user_admin.permissions import IsAdmin
 
@@ -17,18 +17,37 @@ from user_admin.serializers import AdminSerializer
 
 from users.models import User
 from user_admin.models import Admin
+from regular_user.models import UserCourses
 from django_base.utils import get_random_password
 
 
 from django.shortcuts import get_object_or_404
 
 
-class CreateOrganization(APIView):
-    '''Create an organization'''
-    permission_classes = (IsAdminUser,)
+class OrganizationView(APIView):
+    '''get: return all organizations for the current user
+    post: create a new organization
+    '''
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            user_organizations_ids = UserCourses.objects.filter(user=request.user).values_list('course__organization', flat=True).distinct()
+            user_organizations = Organization.objects.filter(id__in=user_organizations_ids)
+            user_serializer = OrganizationSerializer(user_organizations, many=True)
+            admin_organizations = Organization.objects.filter(admins__user=request.user)
+            admin_serializer = OrganizationSerializer(admin_organizations, many=True)
+            return Response({
+                "admin_organizations": admin_serializer.data,
+                "user_organizations": user_serializer.data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
         try:
+            if not request.user.is_superuser:
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             data = request.data.copy()
             if not "email" in data:
                 return Response({'error': 'email is required'}, status=status.HTTP_400_BAD_REQUEST)

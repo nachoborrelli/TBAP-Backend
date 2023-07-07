@@ -76,8 +76,6 @@ class TokenGroupView(APIView):
 
 
 class TokenClaims(APIView):
-
-
     # TODO: return tokens claimable by user
     def get(self, request):
         # if request.user.is_authenticated:
@@ -109,12 +107,12 @@ class TokenClaims(APIView):
 
         #example token_data
         token_data = {
-                    'title': 'Backend TEST',
-                    'issuerId': 1,
+                    'name': 'Backend TEST',
+                    'issuerId': 1, #Organizaction id
                     'nonce': 1,
                     'uri': 'test_uri'
                     }
-        token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
+        token_data['signature'] = utils.create_mint_signature(token_data['name'], token_data['issuerId'], 
                                                               token_data['nonce'], token_data['uri'])
         return Response(token_data)  
     
@@ -133,7 +131,8 @@ class TokenURI(APIView):
     
 # class FetchData(APIView):
 #     def get(self, request):
-        # response = repository.get_reward_overview(1)
+        # token_id = 1
+        # response = repository.get_reward_overview(token_id)
         # response = repository.get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481")
         # return Response(response)
         # return Response("Only for testing purposes. :)")  

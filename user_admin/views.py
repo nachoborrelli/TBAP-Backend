@@ -102,12 +102,15 @@ class CourseView(APIView):
             if not Admin.objects.filter(user=request.user, organization=organization).exists():
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
-            data['organization'] = organization_id
+            data['organization'] = organization.id
 
             serializer = CourseSerializer(data=data)
             if serializer.is_valid():
+                AdminCourses.objects.create(admin=Admin.objects.get(user=request.user, organization=organization),
+                                            course=serializer.save())
                 serializer.save()
-                return Response({'message': 'Course created successfully'}, status=status.HTTP_201_CREATED)
+                return Response({'message': 'Course created successfully',
+                                "data":serializer.data}, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -259,7 +262,7 @@ class SendInvitationToJoinCourseAsUser(APIView):
             
             course_id = request.data.get('course_id')
             course = get_object_or_404(Course, id=course_id)
-
+            print(AdminCourses.objects.filter(admin__user=request.user))
             if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             

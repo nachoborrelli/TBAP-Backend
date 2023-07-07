@@ -6,7 +6,7 @@ from user_admin.models import Course
 # TODO Agregar nonce tracker
 
 class TokenGroup(models.Model):
-    name = models.CharField(max_length=100, null=True, blank=True)
+    name = models.CharField(max_length=100)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='tokens')
     image = models.ImageField(upload_to = 'token_image', default = 'token_image/default.jpg', blank = True, null = True)
     created_at = models.DateTimeField(auto_now_add=True)

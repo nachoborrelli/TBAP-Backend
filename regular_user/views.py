@@ -22,7 +22,8 @@ class InvitationToJoinCourseView(APIView):
 
     def get(self, request):
         try:
-            invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email)
+            invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email).exclude(status='Accepted')\
+                            .order_by('status', '-created_at')
             serializer = InvitationToCourseAsUserSerializer(invitations, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
@@ -72,3 +73,5 @@ class UserCoursesView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
