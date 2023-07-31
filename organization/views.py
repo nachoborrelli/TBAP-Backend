@@ -13,7 +13,6 @@ from organization.models import InvitationToBecameUserAdmin
 from organization.models import Organization
 from organization.serializers import OrganizationSerializer
 from user_admin.models import Admin
-from user_admin.serializers import AdminSerializer
 
 from users.models import User
 from user_admin.models import Admin
