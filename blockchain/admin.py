@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import TokenGroup, UserToken, NonceTracker
+from .models import TokenGroup, UserToken, Signature
 
 @admin.register(TokenGroup)
 class TokenGroupAdmin(admin.ModelAdmin):
@@ -12,12 +12,13 @@ class TokenGroupAdmin(admin.ModelAdmin):
 
 @admin.register(UserToken)
 class UserTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'token', 'created_at', 'is_claimed')
-    search_fields = ('user__email', 'token__name')
-    list_filter = ('token', 'created_at', 'is_claimed')
+    list_display = ('user', 'token_group', 'created_at', 'is_claimed')
+    search_fields = ('user__email', 'token_group__name')
+    list_filter = ('token_group', 'created_at', 'is_claimed')
 
-@admin.register(NonceTracker)
-class NonceTrackerAdmin(admin.ModelAdmin):
-    list_display = ('nonce', 'created_at')
-    search_fields = ('nonce',)
-    list_filter = ('created_at',)
+@admin.register(Signature)
+class SignatureAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token_name', 'organization', 'uri', 'nonce')
+    search_fields = ('user__email', 'token_name', 'organization__name', 'uri')
+    list_filter = ('organization', 'user')
+    

@@ -3,7 +3,7 @@ from web3.auto import w3
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from django_base.settings import CONTRACT_ADDRESS, SIGNER_WALLET_PRIV_KEY
-from blockchain.models import NonceTracker
+from blockchain.models import Signature
 # WALLET_PUB_ADDRESS="0x7db0FAD6B9e2fB362bAD6fB43F1e3aDd48F744D5"
 
 def get_contract_abi(rel_path):
@@ -50,5 +50,5 @@ def verify_message(message, signature, address):
 
 
 def get_new_nonce():
-    last_nonce = NonceTracker.objects.last().nonce
-    return NonceTracker.objects.create(nonce=last_nonce+1).nonce
+    last_nonce = Signature.objects.last().nonce
+    return last_nonce + 1 if last_nonce else 1

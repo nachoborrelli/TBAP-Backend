@@ -10,8 +10,8 @@ from django.shortcuts import get_object_or_404
 from user_admin.models import AdminCourses, Course
 from regular_user.models import UserCourses
 
-from blockchain.models import TokenGroup, NonceTracker, UserToken
-from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, TokenURIRequestSerializer
+from blockchain.models import TokenGroup, UserToken
+from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer
 
 
 class TokenGroupView(APIView):
@@ -50,7 +50,7 @@ class TokenGroupView(APIView):
     def create_masive_user_tokens(self, users, token_group_id):
         userTokens=[]
         for user in users:
-            userTokens.append(UserToken(user_id=user, token_id=token_group_id))
+            userTokens.append(UserToken(user_id=user, token_group_id=token_group_id))
         UserToken.objects.bulk_create(userTokens)
 
 
@@ -106,6 +106,27 @@ class TokenGroupView(APIView):
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class TokenGroupDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk):
+        try:
+            token_group_id = pk
+            token_group = get_object_or_404(TokenGroup, id=token_group_id)
+            if not (AdminCourses.objects.filter(admin__user=request.user, course=token_group.course).exists() or\
+                    (request.user.is_organization and request.user.organization == token_group.course.organization)):
+                if UserCourses.objects.filter(user=request.user, course=token_group.course).exists():
+                    if not token_group.token_group_users.filter(user=request.user).exists():
+                        return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+                else:
+                    return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = TokenGroupSerializer(token_group)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class TokenClaims(APIView):
     permission_classes = (IsAuthenticated,)
     # def get(self, request):
@@ -140,19 +161,46 @@ class TokenClaims(APIView):
         #4. DONE - create signature 
         #5. save in bd
         #6. return signature
-        token_groups = TokenGroup.objects.filter(user_tokens__user=request.user)
+        if not 'user_token_id' in request.data:
+            return Response({'error': 'user_token_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user_token_id = request.data.get('user_token_id')
+        user_token = get_object_or_404(UserToken, id=user_token_id)
+
+        if user_token.user != request.user:
+            return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if user_token.is_claimed:
+            return Response({'error': 'Token already claimed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        token_name = user_token.token_group.name
+        organization = user_token.get_organization()
+        uri = f'/token-groups/{user_token.token_group.id}/'
+        nonce = utils.get_new_nonce()
 
         #example token_data
         token_data = {
-                    'name': 'Backend TEST',
-                    'issuerId': 1, #Organizaction id
-                    'nonce': 1,
-                    'uri': 'test_uri'
+                    'token_name': token_name,
+                    'organization': organization.id,
+                    'nonce': nonce,
+                    'uri': uri
                     }
-        token_data['signature'] = utils.create_mint_signature(token_data['name'], token_data['issuerId'], 
+        
+        #obtener datos de la bd
+        token_data['signature'] = utils.create_mint_signature(token_data['token_name'], token_data['organization'], 
                                                               token_data['nonce'], token_data['uri'])
-        return Response(token_data)  
-    
+        
+        token_data['user'] = request.user.id
+        
+        serializer = SignatureSerializer(data=token_data)
+        if serializer.is_valid():
+            serializer.save()
+            user_token.is_claimed = True
+            user_token.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
 class TokenURI(APIView):
     def get(self, request, tokenId):
         serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
