@@ -129,38 +129,8 @@ class TokenGroupDetailView(APIView):
 
 class TokenClaims(APIView):
     permission_classes = (IsAuthenticated,)
-    # def get(self, request):
-    #     if not 'token_group_id' in request.GET:
-    #         return Response({'error': 'token_group_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-    #     token_group_id = request.GET.get('token_group_id')
-    #     token_group = get_object_or_404(TokenGroup, id=token_group_id)
 
-    #     organization_id = token_group.course.organization.id
-    #     nonce_id = utils.get_new_nonce()
-    #     token_data = {
-    #                 'title': token_group.name,
-    #                 'issuerId': organization_id,
-    #                 'wallet_address': request.user.user_profile.wallet_address,             #Va o no va?
-    #                 'nonce': nonce_id,
-    #                 'uri': token_group_id
-    #                 }
-    #     token_data['signature'] = utils.create_mint_signature(token_data['title'], token_data['issuerId'], 
-    #                                                             token_data['wallet_address'],
-    #                                                             token_data['nonce'], token_data['uri'])
-    #     return Response(token_data)
-    
-    #POST: claim tokens for user, return signature for minting
     def post(self, request):
-        # if request.user.is_authenticated:
-        # else:
-        #     return Response({'data': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
-        # TODO: 
-        #1. check user auth ✅
-        #2. get user profile & tokens
-        #3. check if token exists
-        #4. DONE - create signature 
-        #5. save in bd
-        #6. return signature
         if not 'user_token_id' in request.data:
             return Response({'error': 'user_token_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -203,15 +173,16 @@ class TokenClaims(APIView):
             
 class TokenURI(APIView):
     def get(self, request, tokenId):
-        serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
-        if serializer.is_valid():
-            blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
-            if not blockchain_data:
-                return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
-            # TODO: add bd data to response
-            return Response(blockchain_data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        pass
+#         serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
+#         if serializer.is_valid():
+#             blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
+#             if not blockchain_data:
+#                 return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
+#             # TODO: add bd data to response
+#             return Response(blockchain_data)
+#         else:
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     
 # class FetchData(APIView):

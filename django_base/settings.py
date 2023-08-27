@@ -233,17 +233,23 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 #<------------Cors------------>
-CORS_ALLOWED_ORIGINS = [
-    'http://0.0.0.0:8000',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://0.0.0.0:8000',
+#     'http://localhost:8000',
+#     'http://127.0.0.1:8000',
+#     'http://127.0.0.1:3000',
+#     'http://localhost',
+# ]
 
-CORS_ORIGIN_WHITELIST = [
-    'http://0.0.0.0:8000',
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-]
+# CORS_ORIGIN_WHITELIST = [
+#     'http://0.0.0.0:8000',
+#     'http://127.0.0.1:8000',
+#     'http://localhost:8000',
+#     'http://localhost:3000',
+#     'http://localhost',
+# ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 #<------------Cors------------>
 

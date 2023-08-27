@@ -11,9 +11,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Auth
-    path('login/', LoginView.as_view(),name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('signup/', RegisterView.as_view(), name='signup'),
+    path('api/login/', LoginView.as_view(),name='login'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
+    path('api/signup/', RegisterView.as_view(), name='signup'),
     re_path("signup/account-confirm-email/(?P<key>[\s\d\w().+-_',:&]+)/$", EmailVerification.as_view(), name='account_confirm_email'),
     path('account-email-verification-sent/', EmailVerification.as_view(), name='account_email_verification_sent'),
     path('resend-email/', ResendEmailVerificationView.as_view(), name="rest_resend_email"),
