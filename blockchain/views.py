@@ -6,13 +6,47 @@ from rest_framework.permissions import IsAuthenticated
 from blockchain import utils, repository
 
 from django.shortcuts import get_object_or_404
+from django.core.paginator import Paginator
 
 from user_admin.models import AdminCourses, Course
 from regular_user.models import UserCourses
 
 from blockchain.models import TokenGroup, UserToken
-from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer
+from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer
 
+class UserTokenView(APIView):
+    """
+    View to create and list user tokens (you can think of token groups as classes,
+    each token group has a list of students who can actualy claim the token on the blockchain)
+
+    get: return all user groups of a course
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            course_id = request.GET.get('course_id', None)
+            page = request.GET.get('page', 1)
+    
+            user_tokens = UserToken.objects.filter(user=request.user)
+            if course_id:
+                course = get_object_or_404(Course, id=course_id)
+                user_tokens = user_tokens.filter(token_group__course=course)
+
+            paginator = Paginator(user_tokens, 6)
+
+            serializer = UserTokenSerializer(paginator.page(page), many=True)
+
+            return Response({
+                "total_pages": paginator.num_pages,
+                "page": page,
+                "total_items": paginator.count,
+                "data":serializer.data
+                },
+                status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TokenGroupView(APIView):
     """
@@ -36,9 +70,9 @@ class TokenGroupView(APIView):
             if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
                     (request.user.is_organization and request.user.organization == course.organization)):
                 # return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
-                if UserCourses.objects.filter(user=request.user, course=course).exists():
-                    token_groups = token_groups.filter(token_group_users__user=request.user)
-                else:
+                # if UserCourses.objects.filter(user=request.user, course=course).exists():
+                #     token_groups = token_groups.filter(token_group_users__user=request.user)
+                # else:
                     return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
             serializer = TokenGroupSerializerList(token_groups, many=True)

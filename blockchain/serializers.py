@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from users.serializers import UserSerializer
 
-from blockchain.models import TokenGroup, Signature
-
+from blockchain.models import TokenGroup, Signature, UserToken
 
 class TokenGroupSerializer(serializers.ModelSerializer):
+    course_name = serializers.CharField(source='course.name', read_only=True)
     class Meta:
         model = TokenGroup
         fields = '__all__'
@@ -34,3 +34,9 @@ class SignatureSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
     
     
+
+class UserTokenSerializer(serializers.ModelSerializer):
+    token_group = TokenGroupSerializer()
+    class Meta:
+        model = UserToken
+        fields = ["id", "token_group", "is_claimed", "created_at"]
