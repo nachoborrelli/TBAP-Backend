@@ -32,4 +32,5 @@ class Signature(models.Model):
     token_name = models.CharField(max_length=100)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='signatures')
     uri = models.CharField(max_length=100)
+    was_used = models.BooleanField(default=False)
 

@@ -50,5 +50,5 @@ def verify_message(message, signature, address):
 
 
 def get_new_nonce():
-    last_nonce = Signature.objects.last().nonce
-    return last_nonce + 1 if last_nonce else 1
+    last_nonce = Signature.objects.last().nonce if Signature.objects.last() else 0
+    return last_nonce + 1
