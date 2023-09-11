@@ -13,7 +13,7 @@ from regular_user.models import UserCourses
 
 from blockchain.models import TokenGroup, UserToken
 from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer
-
+        
 class UserTokenView(APIView):
     """
     View to create and list user tokens (you can think of token groups as classes,
@@ -27,8 +27,9 @@ class UserTokenView(APIView):
         try:
             course_id = request.GET.get('course_id', None)
             page = request.GET.get('page', 1)
-    
-            user_tokens = UserToken.objects.filter(user=request.user)
+            is_claimed = request.GET.get('is_claimed', True)
+            print(is_claimed)
+            user_tokens = UserToken.objects.filter(user=request.user, is_claimed=is_claimed)
             if course_id:
                 course = get_object_or_404(Course, id=course_id)
                 user_tokens = user_tokens.filter(token_group__course=course)
