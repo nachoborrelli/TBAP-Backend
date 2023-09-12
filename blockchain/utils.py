@@ -14,7 +14,7 @@ def get_contract_abi(rel_path):
     return abi
 
 def is_valid_address(address):
-    return web3.Web3.isAddress(address)
+    return web3.Web3.is_address(address)
 
 #------------DATA PARSING METHODS----------------
 def blockchain_to_dict(elem):
