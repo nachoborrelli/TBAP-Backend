@@ -19,6 +19,7 @@ class UserToken(models.Model):
     token_group = models.ForeignKey(TokenGroup, on_delete=models.CASCADE, related_name='user_tokens')
     created_at = models.DateTimeField(auto_now_add=True)
     is_claimed = models.BooleanField(default=False)
+    tokenId = models.IntegerField(null=True)
 
     def get_organization(self):
         return self.token_group.course.organization

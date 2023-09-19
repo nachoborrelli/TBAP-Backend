@@ -18,10 +18,12 @@ def is_valid_address(address):
 
 #------------DATA PARSING METHODS----------------
 def blockchain_to_dict(elem):
+    print(elem)
     return {
             'title' : elem[0],
             'issuerId' : elem[1],
-            'createdAt' : elem[2]
+            'createdAt' : elem[2],
+            'uri' : elem[3]
             }
 
 #------------SIGNATURE METHODS----------------

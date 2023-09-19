@@ -12,8 +12,8 @@ from user_admin.models import AdminCourses, Course
 from regular_user.models import UserCourses
 
 from blockchain.models import TokenGroup, UserToken
-from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer
-        
+from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer, TokenURIRequestSerializer
+
 class UserTokenView(APIView):
     """
     View to create and list user tokens (you can think of token groups as classes,
@@ -28,7 +28,6 @@ class UserTokenView(APIView):
             course_id = request.GET.get('course_id', None)
             page = request.GET.get('page', 1)
             is_claimed = request.GET.get('is_claimed', True)
-            print(is_claimed)
             user_tokens = UserToken.objects.filter(user=request.user, is_claimed=is_claimed)
             if course_id:
                 course = get_object_or_404(Course, id=course_id)
@@ -180,7 +179,8 @@ class TokenClaims(APIView):
 
         token_name = user_token.token_group.name
         organization = user_token.get_organization()
-        uri = f'/token-groups/{user_token.token_group.id}/'
+        # uri = f'/token-groups/{user_token.token_group.id}/'
+        uri = f'/{user_token.id}/'
         nonce = utils.get_new_nonce()
 
         #example token_data
@@ -208,16 +208,19 @@ class TokenClaims(APIView):
             
 class TokenURI(APIView):
     def get(self, request, tokenId):
-        pass
-#         serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
-#         if serializer.is_valid():
-#             blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
-#             if not blockchain_data:
-#                 return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
-#             # TODO: add bd data to response
-#             return Response(blockchain_data)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
+        if serializer.is_valid():
+            blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
+            if not blockchain_data:
+                return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
+            # TODO: add bd data to response
+            # UserToken.objects.filter(id=tokenId)
+            # obtain token_group data
+            # obtain course data
+            # obtain organization data
+            return Response(blockchain_data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     
 # class FetchData(APIView):

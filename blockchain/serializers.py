@@ -40,3 +40,4 @@ class UserTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserToken
         fields = ["id", "token_group", "is_claimed", "created_at"]
+
