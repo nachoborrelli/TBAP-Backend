@@ -3,8 +3,6 @@ from users.models import User
 from user_admin.models import Course
 from user_admin.models import Organization
 
-
-
 class TokenGroup(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -12,7 +10,6 @@ class TokenGroup(models.Model):
     image = models.ImageField(upload_to = 'token_image', default = 'token_image/default.jpg', blank = True, null = True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='token_groups')
-
 
 class UserToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_tokens') 
@@ -23,8 +20,6 @@ class UserToken(models.Model):
 
     def get_organization(self):
         return self.token_group.course.organization
-
-
 
 class Signature(models.Model):
     nonce = models.IntegerField()

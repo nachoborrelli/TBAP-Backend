@@ -32,9 +32,9 @@ def get_parsed_rewards_data_for_address(address):
     data= []
     if response:    
         for i in range(len(response[0])):
-            data.append({
-                        "tokenId": response[0][i],
-                        "tokenData" : utils.blockchain_to_dict(response[1][i]),
-                        })
+            item = utils.blockchain_to_dict(response[1][i])
+            item['tokenId'] = response[0][i]
+            data.append(item)
     return data
 
+# print(get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481"))

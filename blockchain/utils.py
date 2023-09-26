@@ -54,3 +54,22 @@ def verify_message(message, signature, address):
 def get_new_nonce():
     last_nonce = Signature.objects.last().nonce if Signature.objects.last() else 0
     return last_nonce + 1
+
+def get_id_from_uri(uri):
+    return uri.split('/')[-2]
+
+def update_user_tokens_and_signatures_in_db(user):
+    from blockchain.models import UserToken, Signature
+    from blockchain.repository import get_parsed_rewards_data_for_address
+
+    blockchain_data = get_parsed_rewards_data_for_address(user.user_profile.wallet_address)
+    for blockchain_token in blockchain_data:
+        user_token_id= get_id_from_uri(blockchain_token['uri'])
+        user_token = UserToken.objects.get(id=user_token_id)
+        if user_token:
+            user_token.tokenId = blockchain_token['tokenId']
+            user_token.save()
+        signature = Signature.objects.get(user=user, uri=user_token_id)
+        if signature:
+            signature.was_used = True
+            signature.save()

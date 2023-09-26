@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from user_admin.models import AdminCourses, Course
 from regular_user.models import UserCourses
 
-from blockchain.models import TokenGroup, UserToken
+from blockchain.models import TokenGroup, UserToken, Signature
 from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer, TokenURIRequestSerializer
 
 class UserTokenView(APIView):
@@ -28,6 +28,9 @@ class UserTokenView(APIView):
             course_id = request.GET.get('course_id', None)
             page = request.GET.get('page', 1)
             is_claimed = request.GET.get('is_claimed', True)
+                
+            utils.update_user_tokens_and_signatures_in_db(request.user)
+
             user_tokens = UserToken.objects.filter(user=request.user, is_claimed=is_claimed)
             if course_id:
                 course = get_object_or_404(Course, id=course_id)
@@ -163,8 +166,25 @@ class TokenGroupDetailView(APIView):
 
 class TokenClaims(APIView):
     permission_classes = (IsAuthenticated,)
-
+    def get (self, request):
+        """Return pending signatures for the user"""
+        
+        pending_signature = Signature.objects.filter(user=request.user, was_used=False).first()
+        if pending_signature:
+            serializer = SignatureSerializer(pending_signature)
+            serializer.instance.pending = True
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({}, status=status.HTTP_200_OK)
+        
     def post(self, request):
+
+        pending_signature = Signature.objects.filter(user=request.user, was_used=False).first()
+        if pending_signature:
+            serializer = SignatureSerializer(pending_signature)
+            serializer.instance.pending = True
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    
         if not 'user_token_id' in request.data:
             return Response({'error': 'user_token_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -177,31 +197,23 @@ class TokenClaims(APIView):
         if user_token.is_claimed:
             return Response({'error': 'Token already claimed'}, status=status.HTTP_400_BAD_REQUEST)
 
-        token_name = user_token.token_group.name
         organization = user_token.get_organization()
-        # uri = f'/token-groups/{user_token.token_group.id}/'
-        uri = f'/{user_token.id}/'
         nonce = utils.get_new_nonce()
 
-        #example token_data
-        token_data = {
-                    'token_name': token_name,
+        signature_data = {
+                    'token_name': user_token.token_group.name,
                     'organization': organization.id,
                     'nonce': nonce,
-                    'uri': uri
+                    'uri': str(user_token.id)
                     }
-        
-        #obtener datos de la bd
-        token_data['signature'] = utils.create_mint_signature(token_data['token_name'], token_data['organization'], 
-                                                              token_data['nonce'], token_data['uri'])
-        
-        token_data['user'] = request.user.id
-        
-        serializer = SignatureSerializer(data=token_data)
+        signature_data['signature'] = utils.create_mint_signature(signature_data['token_name'], signature_data['organization'], 
+                                                              signature_data['nonce'], signature_data['uri'])
+        signature_data['user'] = request.user.id
+        signature_data['pending'] = False
+    
+        serializer = SignatureSerializer(data=signature_data)
         if serializer.is_valid():
             serializer.save()
-            user_token.is_claimed = True
-            user_token.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

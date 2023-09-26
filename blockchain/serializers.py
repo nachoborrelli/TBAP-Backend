@@ -24,10 +24,16 @@ class TokenURIRequestSerializer(serializers.Serializer):
 class SignatureSerializer(serializers.ModelSerializer):
     issuerId = serializers.IntegerField(source='organization.id', read_only=True)
     title = serializers.CharField(source='token_name', read_only=True)
+    pending = serializers.SerializerMethodField()
+    
     class Meta:
         model = Signature
-        fields = ['id', 'nonce', 'signature', 'user', 'title', 'issuerId', 'uri', 'organization', 'token_name']
+        fields = ['id', 'nonce', 'signature', 'user', 'title', 'issuerId', 'uri', 'organization', 'token_name', 'pending']
     
+    def get_pending(self, obj):
+        """return value or return False as default"""
+        return getattr(obj, 'pending', False)
+
     def to_representation(self, instance):
         self.fields.pop('organization')
         self.fields.pop('token_name')
