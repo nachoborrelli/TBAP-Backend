@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from django.core.paginator import Paginator
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
@@ -11,7 +12,8 @@ from user_admin.permissions import IsAdmin
 
 from organization.models import InvitationToBecameUserAdmin
 from organization.models import Organization
-from organization.serializers import OrganizationSerializer
+from organization.serializers import OrganizationSerializer, InvitationToBecameUserAdminSerializer
+
 from user_admin.models import Admin
 
 from users.models import User
@@ -120,3 +122,39 @@ class AdminsOfOrganization(APIView):
         
         admins = Admin.objects.filter(organization=organization)
         return Response({'admins': [{'admin_id': admin.id, 'email': admin.user.email} for admin in admins]}, status=status.HTTP_200_OK)
+    
+
+
+class InvitationsSentView(APIView):
+    '''Get all invitations sent by an organization'''
+    permission_classes = (IsOrganization,)
+
+    def get(self, request):
+        invitations = InvitationToBecameUserAdmin.objects.filter(organization=request.user.organization)
+        page = request.query_params.get('page', 1)
+        paginator = Paginator(invitations, 8)
+
+        serializer = InvitationToBecameUserAdminSerializer(paginator.page(page), many=True)
+
+        return Response({
+            "total_pages": paginator.num_pages,
+            "page": page,
+            "total_items": paginator.count,
+            "data":serializer.data
+            },
+            status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        if not 'invitation_id' in request.data:
+            return Response({'error': 'invitation_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        invitation_id = request.data.get('invitation_id')
+        invitation = get_object_or_404(InvitationToBecameUserAdmin, id=invitation_id)
+        if invitation.organization != request.user.organization:
+            return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if invitation.status != 'Pending':
+            return Response({'error': 'You can only delete pending invitations'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        invitation.delete()
+        return Response({'success': 'Invitation deleted'}, status=status.HTTP_200_OK)
+        

@@ -49,8 +49,8 @@ class ResponseInvitationToBecameUserAdminView(APIView):
             if request.user.email != invitation.email:
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
-            if invitation.status == 'Accepted':
-                return Response({'error': 'This invitation was already accepted'}, status=status.HTTP_400_BAD_REQUEST)
+            if invitation.status != 'Pending':
+                return Response({'error': 'This invitation was already response'}, status=status.HTTP_400_BAD_REQUEST)
             
             invitation_status = request.data.get('invitation_status')
             if invitation_status not in ['Accepted', 'Rejected']:
