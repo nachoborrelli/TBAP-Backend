@@ -10,10 +10,23 @@ def validate_wallet_address(value):
     
 class UserProfileSerializer(serializers.ModelSerializer):
     wallet_address = serializers.CharField(validators=[validate_wallet_address])
+    user_type = serializers.SerializerMethodField()
     class Meta:
         model = UserProfile
         fields = '__all__'
         read_only_fields = ('user',)
+
+    def get_user_type(self, obj):
+        if hasattr(obj.user, 'organization'):
+            return 'organization'
+
+        if obj.user.admin.exists():
+            return 'user_admin'
+        
+        if obj.user.user_profile:
+            return 'regular_user'
+        
+        return 'unknown'
 
 class UserCoursesSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
