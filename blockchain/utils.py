@@ -56,7 +56,7 @@ def get_new_nonce():
     return last_nonce + 1
 
 def get_id_from_uri(uri):
-    return uri.split('/')[-2]
+    return int(uri.split('/')[-1])
 
 def update_user_tokens_and_signatures_in_db(user):
     from blockchain.models import UserToken, Signature
@@ -64,10 +64,12 @@ def update_user_tokens_and_signatures_in_db(user):
 
     blockchain_data = get_parsed_rewards_data_for_address(user.user_profile.wallet_address)
     for blockchain_token in blockchain_data:
+        print(blockchain_token)
         user_token_id= get_id_from_uri(blockchain_token['uri'])
         user_token = UserToken.objects.get(id=user_token_id)
         if user_token:
             user_token.tokenId = blockchain_token['tokenId']
+            user_token.is_claimed = True
             user_token.save()
         signature = Signature.objects.get(user=user, uri=user_token_id)
         if signature:
