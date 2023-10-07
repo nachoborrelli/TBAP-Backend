@@ -9,9 +9,9 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
-from user_admin.serializers import CourseSerializer, InvitationToCourseAsAdminSerializer
+from user_admin.serializers import CourseSerializer
 from user_admin.permissions import IsAdmin
-from user_admin.models import AdminCourses, InvitationToCourseAsUser, InvitationToCourseAsAdmin, Course
+from user_admin.models import AdminCourses, InvitationToCourseAsUser, Course
 from organization.models import InvitationToBecameUserAdmin,Organization
 from organization.serializers import InvitationToBecameUserAdminSerializer
 
@@ -120,20 +120,20 @@ class CourseView(APIView):
         
 
 
-def send_email_to_users(course_name, is_admin, users_list):
-    """
-    Send an email to a list of users to invite them to join a course as admin or regular user
-    """
-    extra_text = ' as admin' if is_admin else ''
-    subject = f'TBAP - Invitation to join course{extra_text}'
-    message = f'You have been invited to join a course on {course_name}{extra_text}. Please click the link below to accept the invitation.'
-    from_email = EMAIL_HOST_USER
-    send_mail(subject, message, from_email, users_list, fail_silently=False)
+# def send_email_to_users(course_name, is_admin, users_list):
+#     """
+#     Send an email to a list of users to invite them to join a course as admin or regular user
+#     """
+#     extra_text = ' as admin' if is_admin else ''
+#     subject = f'TBAP - Invitation to join course{extra_text}'
+#     message = f'You have been invited to join a course on {course_name}{extra_text}. Please click the link below to accept the invitation.'
+#     from_email = EMAIL_HOST_USER
+#     send_mail(subject, message, from_email, users_list, fail_silently=False)
 
 
-class SendInvitationToJoinCourseAsAdmin(APIView):
+class AddAdminToCourse(APIView):
     """
-    View to send an invitation to join a course as admin to a another admin
+    View to add an admin to a course
     """
     permission_classes = (IsAdmin,)
 
@@ -154,59 +154,11 @@ class SendInvitationToJoinCourseAsAdmin(APIView):
             if AdminCourses.objects.filter(admin=admin, course=course).exists():
                 return Response({'error': 'This user is already an admin'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if InvitationToCourseAsAdmin.objects.filter(course=course, admin=admin).exists():
-                return Response({'error': 'This user already has an invitation'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        
-            send_email_to_users(course.name, True, [admin.user.email])
-            InvitationToCourseAsAdmin.objects.create(course=course, admin=admin)
-            return Response({'message': 'Invitation sent successfully'}, status=status.HTTP_200_OK)
+            AdminCourses.objects.create(course=course, admin=admin)
+            return Response({'message': 'Admin added successfully'}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class ResponseInvitationToJoinCourseAsAdminView(APIView):
-    """
-    View to accept or reject an invitation to join a course as admin
-    get: Return all invitations to join a course as admin that the user has not accepted yet
-    post: Accept or reject an invitation to join a course as admin
-    """
-    permission_classes = (IsAdmin,)
-
-    def get(self, request):
-        try:
-            invitations = InvitationToCourseAsAdmin.objects.filter(admin__user=request.user).exclude(status='Accepted')
-            serializer = InvitationToCourseAsAdminSerializer(invitations, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def post(self, request):
-        try:
-            if not 'invitation_id' in request.data or not 'invitation_status' in request.data:
-                return Response({'error': 'invitation_id and invitation_status are required'}, status=status.HTTP_400_BAD_REQUEST)
-            invitation_id = request.data.get('invitation_id')
-            invitation = get_object_or_404(InvitationToCourseAsAdmin, id=invitation_id)
-            invitation_status = request.data.get('invitation_status')
-            if invitation.admin.user != request.user:
-                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
-            
-            if invitation_status not in ['Accepted', 'Rejected']:
-                return Response({'error': 'Invalid invitation status, must be either Accepted or Rejected'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            if invitation.status == 'Accepted':
-                return Response({'error': 'This invitation has already been accepted'}, status=status.HTTP_400_BAD_REQUEST)
-
-            if invitation_status == 'Accepted':
-                AdminCourses.objects.create(admin=invitation.admin, course=invitation.course)
-
-            invitation.status = invitation_status
-            invitation.save()
-
-            return Response({'message': 'Response invitation successfully'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
 
 class SendInvitationToJoinCourseAsUser(APIView):
     """

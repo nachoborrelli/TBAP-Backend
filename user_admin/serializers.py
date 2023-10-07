@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from user_admin.models import Admin, Course, AdminCourses, InvitationToCourseAsAdmin, InvitationToCourseAsUser
+from user_admin.models import Admin, Course, AdminCourses, InvitationToCourseAsUser
 from users.serializers import UserSerializer
 
 class AdminSerializer(serializers.ModelSerializer):
@@ -21,14 +21,6 @@ class AdminCoursesSerializer(serializers.ModelSerializer):
         model = AdminCourses
         fields = ('admin', 'course')
 
-
-class InvitationToCourseAsAdminSerializer(serializers.ModelSerializer):
-    admin = AdminSerializer()
-    class Meta:
-        model = InvitationToCourseAsAdmin
-        fields = '__all__'
-        read_only_fields = ('status', 'created_at')
-    
 
 class InvitationToCourseAsUserSerializer(serializers.ModelSerializer):
     class Meta:
