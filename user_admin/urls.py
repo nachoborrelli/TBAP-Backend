@@ -6,7 +6,7 @@ SendInvitationToJoinCourseAsUser, AddAdminToCourse
 
 urlpatterns = [
     path('invitations-to-became-admin/', ResponseInvitationToBecameUserAdminView.as_view(), name='invitation'),
-    path('course/', CourseView.as_view(), name='course'),
+    path('courses/', CourseView.as_view(), name='course'),
     path('add-admin-to-course/', AddAdminToCourse.as_view(), name='add-admin-to-course'),
     path('send-invitation-to-join-course-as-user/', SendInvitationToJoinCourseAsUser.as_view(), name='send-invitation-to-join-course-as-user'),
 ]

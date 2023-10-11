@@ -14,6 +14,7 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
 
+
 class AdminCoursesSerializer(serializers.ModelSerializer):
     admin = AdminSerializer()
     course = CourseSerializer()
@@ -21,6 +22,18 @@ class AdminCoursesSerializer(serializers.ModelSerializer):
         model = AdminCourses
         fields = ('admin', 'course')
 
+class CoursesForAdminSerializer(serializers.ModelSerializer):   
+    admins_in_course = serializers.SerializerMethodField()
+    class Meta:
+        model = Course
+        fields = '__all__'
+
+    def get_admins_in_course(self, obj):
+        admin_ids = AdminCourses.objects.filter(course=obj).values('admin')
+        admins = Admin.objects.filter(id__in=admin_ids)
+        admins_data = AdminSerializer(admins, many=True).data
+        return admins_data
+        
 
 class InvitationToCourseAsUserSerializer(serializers.ModelSerializer):
     class Meta:

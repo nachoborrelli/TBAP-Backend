@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
-from user_admin.serializers import CourseSerializer
+from user_admin.serializers import CourseSerializer, CoursesForAdminSerializer
 from user_admin.permissions import IsAdmin
 from user_admin.models import AdminCourses, InvitationToCourseAsUser, Course
 from organization.models import InvitationToBecameUserAdmin,Organization
@@ -77,20 +77,17 @@ class CourseView(APIView):
     permission_classes = (IsAdmin,)
 
     def get(self, request):
-        try:
-            if not 'organization_id' in request.GET:
-                return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-            organization_id = request.GET.get('organization_id')
-            organization_courses = Course.objects.filter(organization=organization_id)  
-            courses = []
-            for course in organization_courses:
-                if AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
-                    (request.user.is_organization and request.user.organization.id == int(organization_id)):
-                    courses.append(course)
-            serializer = CourseSerializer(courses, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not 'organization_id' in request.GET:
+            return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        organization_id = request.GET.get('organization_id')
+        organization_courses = Course.objects.filter(organization=organization_id)  
+        courses = []
+        for course in organization_courses:
+            if AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                (request.user.is_organization and request.user.organization.id == int(organization_id)):
+                courses.append(course)
+        serializer = CoursesForAdminSerializer(courses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         try:
