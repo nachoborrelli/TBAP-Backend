@@ -1,3 +1,5 @@
+from user_admin.serializers import CourseSerializer
+from organization.serializers import OrganizationSerializer
 from rest_framework import serializers
 from users.serializers import UserSerializer
 
@@ -15,10 +17,6 @@ class TokenGroupSerializerList(serializers.ModelSerializer):
     class Meta:
         model = TokenGroup
         fields = '__all__'
-
-    
-class TokenURIRequestSerializer(serializers.Serializer):
-    tokenId = serializers.IntegerField()
 
 
 class SignatureSerializer(serializers.ModelSerializer):
@@ -47,3 +45,62 @@ class UserTokenSerializer(serializers.ModelSerializer):
         model = UserToken
         fields = ["id", "token_group", "is_claimed", "created_at"]
 
+
+class TokenUriRequestSerializer(serializers.Serializer):
+    userTokenId = serializers.IntegerField()
+
+class BlockchainTokenSerializer(serializers.Serializer):
+    tokenId = serializers.IntegerField()
+    title = serializers.CharField()
+    issuerId = serializers.IntegerField()
+    createdAt = serializers.IntegerField()
+    uri = serializers.CharField()
+
+class UriUserTokenSerializer(serializers.ModelSerializer):
+    description= serializers.CharField(source='token_group.description')
+    image= serializers.ImageField(source='token_group.image')
+    
+    class Meta:
+        model = UserToken
+        fields = ['description', 'image']
+
+
+class TokenMixedSerializer(serializers.Serializer):
+    # token = serializers.SerializerMethodField()
+    # course = serializers.SerializerMethodField()
+    # organization = serializers.SerializerMethodField()
+    blockchain_token = BlockchainTokenSerializer()
+    db_token = UriUserTokenSerializer()
+    course = CourseSerializer(source='db_token.token_group.course')
+    organization = OrganizationSerializer(source='db_token.token_group.course.organization')
+
+# {
+    # token: {db_object, blockchain_data}
+    # course: {db_object}
+    # organization: {db_object}
+# }
+
+    # def get_token(self, obj):
+    #     # Assuming `obj` is an instance of UserToken
+    #     return {
+    #         'tokenId': obj.tokenId,
+    #         'title': obj.blockchain_data['title'],  # Replace with actual field names
+    #         'issuerId': obj.blockchain_data['issuerId'],
+    #         'createdAt': obj.blockchain_data['createdAt'],
+    #         'uri': obj.blockchain_data['uri'],
+    #         'description': obj.token_group.description,
+    #         'image': obj.token_group.image.url if obj.token_group.image else None
+    #     }
+
+    # def get_course(self, obj):
+    #     return {
+    #         'name': obj.token_group.course.name,
+    #         'description': obj.token_group.course.description
+    #     }
+
+    # def get_organization(self, obj):
+    #     return {
+    #         'name': obj.token_group.course.organization.name,
+    #         'description': obj.token_group.course.organization.description,
+    #         'logo': obj.token_group.course.organization.logo.url if obj.token_group.course.organization.logo else None
+    #     }

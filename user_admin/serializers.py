@@ -14,6 +14,10 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = '__all__'
 
+class TokenUriCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['name', 'description']
 
 class AdminCoursesSerializer(serializers.ModelSerializer):
     admin = AdminSerializer()

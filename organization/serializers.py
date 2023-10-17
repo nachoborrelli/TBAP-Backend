@@ -2,6 +2,11 @@ from rest_framework import serializers
 from organization.models import Organization, InvitationToBecameUserAdmin
 
 
+class TokenUriOrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ['name', 'description', 'logo']
+
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization

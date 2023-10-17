@@ -12,6 +12,8 @@ def execute_function(function_name, *args):
         @param function_name: name of the function to execute
         @param args: arguments to pass to the function
     """
+    return contract.functions[function_name](*args).call()
+
     try:
         return contract.functions[function_name](*args).call()
     except:
@@ -37,4 +39,8 @@ def get_parsed_rewards_data_for_address(address):
             data.append(item)
     return data
 
+def get_token_from_uri(uri):
+    """Returns the token id from a given uri"""
+    return int(uri.split('/')[-1])
 # print(get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481"))
+# print(get_reward_overview(0))

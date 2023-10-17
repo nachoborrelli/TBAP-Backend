@@ -9,10 +9,14 @@ from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
 
 from user_admin.models import AdminCourses, Course
+from user_admin.serializers import TokenUriCourseSerializer
+from organization.serializers import TokenUriOrganizationSerializer
 from regular_user.models import UserCourses
 
 from blockchain.models import TokenGroup, UserToken, Signature
-from blockchain.serializers import TokenGroupSerializer, TokenGroupSerializerList, SignatureSerializer, UserTokenSerializer, TokenURIRequestSerializer
+from blockchain.serializers import BlockchainTokenSerializer, TokenGroupSerializer, \
+    TokenGroupSerializerList, SignatureSerializer, UriUserTokenSerializer, \
+    UserTokenSerializer, TokenUriRequestSerializer
 
 class UserTokenView(APIView):
     """
@@ -220,26 +224,30 @@ class TokenClaims(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
 class TokenURI(APIView):
-    def get(self, request, tokenId):
-        serializer = TokenURIRequestSerializer(data={'tokenId': tokenId})
-        if serializer.is_valid():
-            blockchain_data = repository.get_reward_overview(serializer.data['tokenId'])
+    def get(self, request, userTokenId):
+        request_serializer = TokenUriRequestSerializer(data={'userTokenId': userTokenId})
+        if request_serializer.is_valid():
+            db_token = UserToken.objects.filter(id=request_serializer.data['userTokenId']).first()
+            if not db_token:
+                return Response({'Error': f'Token with id {userTokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
+            if not db_token.is_claimed:
+                if not utils.update_single_token_and_signature_in_bd(db_token):
+                    return Response({'Error': f'Token with id {userTokenId} has not been claimed yet'}, status=status.HTTP_400_BAD_REQUEST)
+            blockchain_data = repository.get_reward_overview(db_token.tokenId)
             if not blockchain_data:
-                return Response({'Error': f'Token with id {tokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
-            # TODO: add bd data to response
-            # UserToken.objects.filter(id=tokenId)
-            # obtain token_group data
-            # obtain course data
-            # obtain organization data
-            return Response(blockchain_data)
+                return Response({'Error': f'Blockchain Token with id {userTokenId} not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            blockchain_data['tokenId']=db_token.tokenId
+            uriUserTokenSerializerData=UriUserTokenSerializer(db_token).data
+            BlockchainTokenSerializerData=BlockchainTokenSerializer(blockchain_data).data
+            CourseSerializerData= TokenUriCourseSerializer(db_token.token_group.course).data
+            OrganizationSerializerData=TokenUriOrganizationSerializer(db_token.token_group.course.organization).data
+            
+            return Response({
+                'db_token' : uriUserTokenSerializerData,
+                'blockchain_token': BlockchainTokenSerializerData,
+                'course': CourseSerializerData,
+                'organization': OrganizationSerializerData
+                }, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    
-# class FetchData(APIView):
-#     def get(self, request):
-        # token_id = 1
-        # response = repository.get_reward_overview(token_id)
-        # response = repository.get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481")
-        # return Response(response)
-        # return Response("Only for testing purposes. :)")  
+            return Response(request_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

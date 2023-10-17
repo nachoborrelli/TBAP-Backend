@@ -18,7 +18,6 @@ def is_valid_address(address):
 
 #------------DATA PARSING METHODS----------------
 def blockchain_to_dict(elem):
-    print(elem)
     return {
             'title' : elem[0],
             'issuerId' : elem[1],
@@ -75,3 +74,14 @@ def update_user_tokens_and_signatures_in_db(user):
         if signature:
             signature.was_used = True
             signature.save()
+
+def update_single_token_and_signature_in_bd(db_token):
+    """Execute when token is fetched from blockchain and 
+    it's data has yet not been persisted in the database. 
+    Update it's user signature as well"""
+    # TODO: complete function and call it from blockchain.views.TokenURI
+    from blockchain.repository import get_reward_overview
+
+    blockchain_data = get_reward_overview(db_token)
+    return True
+    pass
