@@ -25,6 +25,8 @@ class UserTokenView(APIView):
 
     def get(self, request):
         try:
+            if not request.user.user_profile.wallet_address:
+                return Response({'error': 'You must have a wallet address to do this'}, status=status.HTTP_400_BAD_REQUEST)
             course_id = request.GET.get('course_id', None)
             page = request.GET.get('page', 1)
             is_claimed = request.GET.get('is_claimed', True)
@@ -178,7 +180,6 @@ class TokenClaims(APIView):
             return Response({}, status=status.HTTP_200_OK)
         
     def post(self, request):
-
         pending_signature = Signature.objects.filter(user=request.user, was_used=False).first()
         if pending_signature:
             serializer = SignatureSerializer(pending_signature)

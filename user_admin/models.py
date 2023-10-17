@@ -35,18 +35,18 @@ class InvitationToCourseAsUser(models.Model):
 
 
 
-class InvitationToCourseAsAdmin(models.Model):
-    STATUS_CHOICES = (
-        ('Pending', 'Pending'),
-        ('Accepted', 'Accepted'),
-        ('Rejected', 'Rejected'),
-    )
+# class InvitationToCourseAsAdmin(models.Model):
+#     STATUS_CHOICES = (
+#         ('Pending', 'Pending'),
+#         ('Accepted', 'Accepted'),
+#         ('Rejected', 'Rejected'),
+#     )
 
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='invitations_as_admin')
-    admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='invitations_as_admin')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+#     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='invitations_as_admin')
+#     admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='invitations_as_admin')
+#     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        verbose_name = 'Invitation to Course as Admin'
-        verbose_name_plural = 'Invitations to Courses as Admins'
+#     class Meta:
+#         verbose_name = 'Invitation to Course as Admin'
+#         verbose_name_plural = 'Invitations to Courses as Admins'

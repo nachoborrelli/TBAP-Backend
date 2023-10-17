@@ -15,6 +15,7 @@ from organization.models import Organization
 from organization.serializers import OrganizationSerializer, InvitationToBecameUserAdminSerializer
 
 from user_admin.models import Admin
+from user_admin.serializers import AdminSerializer
 
 from users.models import User
 from user_admin.models import Admin
@@ -121,8 +122,8 @@ class AdminsOfOrganization(APIView):
             return Response({'error': 'You are not an admin of this organization'}, status=status.HTTP_400_BAD_REQUEST)
         
         admins = Admin.objects.filter(organization=organization)
-        return Response({'admins': [{'admin_id': admin.id, 'email': admin.user.email} for admin in admins]}, status=status.HTTP_200_OK)
-    
+        serializer = AdminSerializer(admins, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class InvitationsSentView(APIView):
