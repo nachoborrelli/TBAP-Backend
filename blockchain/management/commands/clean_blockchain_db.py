@@ -7,10 +7,8 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE('Running your script...'))
         
-        #Delete all signatures, user tokens and token groups
         Signature.objects.all().delete()
-        UserToken.objects.all().delete()
-        TokenGroup.objects.all().delete()
+        UserToken.objects.all().update(is_claimed=False, tokenId=None)
         
         self.stdout.write(self.style.SUCCESS('Successfully ran your script!'))
 
