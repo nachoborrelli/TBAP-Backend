@@ -19,10 +19,11 @@ def is_valid_address(address):
 #------------DATA PARSING METHODS----------------
 def blockchain_to_dict(elem):
     return {
-            'title' : elem[0],
-            'issuerId' : elem[1],
-            'createdAt' : elem[2],
-            'uri' : elem[3]
+            'tokenId' : elem[0],
+            'title' : elem[1],
+            'issuerId' : elem[2],
+            'createdAt' : elem[3],
+            'uri' : elem[4]
             }
 
 #------------SIGNATURE METHODS----------------
@@ -57,6 +58,7 @@ def get_new_nonce():
 def get_id_from_uri(uri):
     return int(uri.split('/')[-1])
 
+
 def update_user_tokens_and_signatures_in_db(user):
     from blockchain.models import UserToken, Signature
     from blockchain.repository import get_parsed_rewards_data_for_address
@@ -81,7 +83,15 @@ def update_single_token_and_signature_in_bd(db_token):
     Update it's user signature as well"""
     # TODO: complete function and call it from blockchain.views.TokenURI
     from blockchain.repository import get_reward_overview
+    from blockchain.models import Signature
 
-    blockchain_data = get_reward_overview(db_token)
+    blockchain_token = get_reward_overview(db_token.id)
+    if blockchain_token:
+        db_token.tokenId = blockchain_token['tokenId']
+        db_token.is_claimed = True
+        db_token.save()
+        signature = Signature.objects.get(user=db_token.user, uri=db_token.id)
+        if signature:
+            signature.was_used = True
+            signature.save()
     return True
-    pass

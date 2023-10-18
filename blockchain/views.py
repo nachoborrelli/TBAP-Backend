@@ -34,7 +34,6 @@ class UserTokenView(APIView):
             course_id = request.GET.get('course_id', None)
             page = request.GET.get('page', 1)
             is_claimed = request.GET.get('is_claimed', True)
-                
             utils.update_user_tokens_and_signatures_in_db(request.user)
 
             user_tokens = UserToken.objects.filter(user=request.user, is_claimed=is_claimed)
