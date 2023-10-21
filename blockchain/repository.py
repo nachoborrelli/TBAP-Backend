@@ -58,7 +58,7 @@ def get_token_from_uri(uri):
     return int(uri.split('/')[-1])
 
 def create_uri_from_id(id):
-    return BASE_URL + "api/blockchain/uri/" + str(id)
+    return BASE_URL + "/api/blockchain/uri/" + str(id)
 # print(get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481"))
 # print(get_reward_overview(100))
-print(get_reward_overview_from_uri('11'))
+# print(get_reward_overview_from_uri('11'))
