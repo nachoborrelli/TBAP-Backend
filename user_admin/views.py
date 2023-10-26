@@ -5,10 +5,12 @@ import csv
 import io
 
 from rest_framework.permissions import IsAuthenticated
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
 
+from user_admin.serializers import InvitationToCourseAsUserSerializer
 from user_admin.serializers import CourseSerializer, CoursesForAdminSerializer
 from user_admin.permissions import IsAdmin
 from user_admin.models import AdminCourses, InvitationToCourseAsUser, Course
@@ -114,18 +116,49 @@ class CourseView(APIView):
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
 
+
+class UsersInCourseView(APIView):
+    """
+    View to list all regular users in a course
+    """
+    permission_classes = (IsAdmin,)
+
+    def get(self, request):
+        try:
+            if not 'course_id' in request.GET:
+                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            course_id = request.GET.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            page = request.GET.get('page', 1)
+
+            invitations = InvitationToCourseAsUser.objects.filter(course=course)
+            paginator = Paginator(invitations, 6)
+            serializer = InvitationToCourseAsUserSerializer(paginator.page(page), many=True)
+
+            return Response({
+                "total_pages": paginator.num_pages,
+                "page": page,
+                "total_items": paginator.count,
+                "data":serializer.data
+                },
+                status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
         
 
 
-# def send_email_to_users(course_name, is_admin, users_list):
-#     """
-#     Send an email to a list of users to invite them to join a course as admin or regular user
-#     """
-#     extra_text = ' as admin' if is_admin else ''
-#     subject = f'TBAP - Invitation to join course{extra_text}'
-#     message = f'You have been invited to join a course on {course_name}{extra_text}. Please click the link below to accept the invitation.'
-#     from_email = EMAIL_HOST_USER
-#     send_mail(subject, message, from_email, users_list, fail_silently=False)
+def send_email_to_users(course_name, is_admin, users_list):
+    """
+    Send an email to a list of users to invite them to join a course as admin or regular user
+    """
+    extra_text = ' as admin' if is_admin else ''
+    subject = f'TBAP - Invitation to join course{extra_text}'
+    message = f'You have been invited to join a course on {course_name}{extra_text}. Please click the link below to accept the invitation.'
+    from_email = EMAIL_HOST_USER
+    send_mail(subject, message, from_email, users_list, fail_silently=False)
 
 
 class AddAdminToCourse(APIView):
