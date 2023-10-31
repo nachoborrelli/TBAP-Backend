@@ -244,14 +244,13 @@ class SendInvitationToJoinCourseAsUser(APIView):
             
             course_id = request.data.get('course_id')
             course = get_object_or_404(Course, id=course_id)
-            print(AdminCourses.objects.filter(admin__user=request.user))
             if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
             if 'email' in request.data:
                 email = request.data.get('email')
             
-                if InvitationToCourseAsUser.objects.filter(course=course, email=email).exists():
+                if InvitationToCourseAsUser.objects.filter(course=course, email=email, status="Pending").exists():
                     return Response({'error': 'This user already has an invitation'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 if AdminCourses.objects.filter(admin__user__email=email, course=course).exists():

@@ -22,7 +22,8 @@ class InvitationToJoinCourseView(APIView):
 
     def get(self, request):
         try:
-            invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email).exclude(status='Accepted')\
+            print("toy")
+            invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email).filter(status='Pending')\
                             .order_by('status', '-created_at')
             serializer = InvitationToCourseAsUserSerializer(invitations, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)

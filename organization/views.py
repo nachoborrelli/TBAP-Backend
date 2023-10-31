@@ -14,7 +14,7 @@ from organization.models import InvitationToBecameUserAdmin
 from organization.models import Organization
 from organization.serializers import OrganizationSerializer, InvitationToBecameUserAdminSerializer
 
-from user_admin.models import Admin
+from user_admin.models import Admin, InvitationToCourseAsUser
 from user_admin.serializers import AdminSerializer
 
 from users.models import User
@@ -34,7 +34,9 @@ class OrganizationView(APIView):
 
     def get(self, request):
         try:
-            user_organizations_ids = UserCourses.objects.filter(user=request.user).values_list('course__organization', flat=True).distinct()
+            user_courses = UserCourses.objects.filter(user=request.user).values_list('course__organization', flat=True).distinct()
+            user_invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email).values_list('course__organization', flat=True).distinct()
+            user_organizations_ids = list(user_invitations) + list(user_courses)
             user_organizations = Organization.objects.filter(id__in=user_organizations_ids)
             user_serializer = OrganizationSerializer(user_organizations, many=True)
             admin_organizations = Organization.objects.filter(admins__user=request.user)

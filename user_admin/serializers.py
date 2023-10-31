@@ -10,10 +10,13 @@ class AdminSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 class CourseSerializer(serializers.ModelSerializer):
+    organization_name = serializers.SerializerMethodField()
     class Meta:
         model = Course
         fields = '__all__'
 
+    def get_organization_name(self, obj):
+        return obj.organization.name
 class TokenUriCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
@@ -40,6 +43,7 @@ class CoursesForAdminSerializer(serializers.ModelSerializer):
         
 
 class InvitationToCourseAsUserSerializer(serializers.ModelSerializer):
+    course = CourseSerializer()
     class Meta:
         model = InvitationToCourseAsUser
         fields = '__all__'
