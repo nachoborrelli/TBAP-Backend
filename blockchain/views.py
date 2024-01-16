@@ -60,7 +60,6 @@ class TokenGroupView(APIView):
     """
     View to create and list token groups (you can think of token groups as classes,
     each token group has a list of students who can actualy claim the token on the blockchain)
-
     get: return all token groups of a course
             if the user is not admin of the course, return only the token groups that the user is in
     post: create a new token group

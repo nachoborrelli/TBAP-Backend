@@ -28,6 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         
         return 'unknown'
 
+
 class UserCoursesSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
     class Meta:

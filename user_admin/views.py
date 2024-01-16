@@ -83,11 +83,14 @@ class CourseView(APIView):
             return Response({'error': 'organization_id is required'}, status=status.HTTP_400_BAD_REQUEST)
         organization_id = request.GET.get('organization_id')
         organization_courses = Course.objects.filter(organization=organization_id)  
-        courses = []
-        for course in organization_courses:
-            if AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
-                (request.user.is_organization and request.user.organization.id == int(organization_id)):
-                courses.append(course)
+        if request.user.is_organization and request.user.organization.id == int(organization_id):
+            courses = organization_courses
+        else:
+            courses = []
+            for course in organization_courses:
+                if AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization.id == int(organization_id)):
+                    courses.append(course)
         serializer = CoursesForAdminSerializer(courses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -129,7 +132,9 @@ class UsersInCourseView(APIView):
                 return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
             course_id = request.GET.get('course_id')
             course = get_object_or_404(Course, id=course_id)
-            if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
+            
+            if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists()\
+                and not (request.user.is_organization and request.user.organization == course.organization):
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             page = request.GET.get('page', 1)
 
@@ -207,13 +212,14 @@ class SendInvitationToJoinCourseAsUser(APIView):
                             'e_mail', 'email', 'correo electronico', 'email address', 'email_address']
         
         emails_reader = csv.reader(emails_file)
+
         headers = next(emails_reader)  # Leer la primera fila (encabezados)
         # Eliminar el carácter '\ufeff' si está presente
         if headers[0].startswith('\ufeff'):
             headers[0] = headers[0][1:]
 
         # Eliminar comillas adicionales al final de los encabezados y convertirlos a minúsculas
-        headers = [header.strip('"').lower() for header in headers]
+        headers = [header.lower() for header in headers[0].split(';')]
         # Buscar la columna de correos electrónicos
         email_column_index = None
         for column_name in posible_columns:
@@ -225,8 +231,9 @@ class SendInvitationToJoinCourseAsUser(APIView):
             # Recopilar los correos electrónicos de la columna encontrada
             emails = []
             for row in emails_reader:
-                if email_column_index < len(row):
-                    email = row[email_column_index].strip()
+                new_row = row[0].split(';')
+                if email_column_index <= len(new_row):
+                    email = new_row[email_column_index].strip()
                     if email:  # Ignorar celdas vacías
                         emails.append(email)
             return emails
@@ -239,6 +246,7 @@ class SendInvitationToJoinCourseAsUser(APIView):
         try:
             if not 'course_id' in request.data:
                 return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
             if not 'email' in request.data and not 'emails' in request.FILES:
                 return Response({'error': 'email in body or emails as file are required'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -264,9 +272,13 @@ class SendInvitationToJoinCourseAsUser(APIView):
                 is_already_in_errors = []
 
                 emails_file = request.FILES['emails']
+
+                print("emails_file", emails_file)
                 
                 
                 pre_emails = self.get_email_list(emails_file)
+                print("pre_emails", pre_emails)
+                # pre_emails = []
                 
                 for email in pre_emails:
                     if InvitationToCourseAsUser.objects.filter(course=course, email=email).exists():
