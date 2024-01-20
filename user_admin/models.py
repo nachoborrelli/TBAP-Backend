@@ -2,6 +2,7 @@ from django.db import models
 from users.models import User, SEX_CHOICES
 from organization.models import Organization
 
+
 class Admin(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin')
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='admins')
@@ -16,6 +17,7 @@ class Course(models.Model):
 class AdminCourses(models.Model):
     admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='admins_courses')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='admins_courses')
+
 
 class InvitationToCourseAsUser(models.Model):
     STATUS_CHOICES = (

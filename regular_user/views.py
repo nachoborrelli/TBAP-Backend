@@ -22,7 +22,6 @@ class InvitationToJoinCourseView(APIView):
 
     def get(self, request):
         try:
-            print("toy")
             invitations = InvitationToCourseAsUser.objects.filter(email=request.user.email).filter(status='Pending')\
                             .order_by('status', '-created_at')
             serializer = InvitationToCourseAsUserSerializer(invitations, many=True)
@@ -69,7 +68,12 @@ class UserCoursesView(APIView):
 
     def get(self, request):
         try:
-            user_courses = UserCourses.objects.filter(user=request.user)
+            if "organization_id" in request.query_params:
+                organization_id = request.query_params.get('organization_id')
+                user_courses = UserCourses.objects.filter(user=request.user, course__organization__id=organization_id)
+            else:
+                user_courses = UserCourses.objects.filter(user=request.user)
+
             serializer = UserCoursesSerializer(user_courses, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
