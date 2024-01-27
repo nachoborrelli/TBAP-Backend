@@ -109,6 +109,7 @@ class SendAdminInvitation(APIView):
         InvitationToBecameUserAdmin.objects.create(email=email, organization=organization)
 
         return Response({'success': 'Invitation sent'}, status=status.HTTP_200_OK)
+    
 
 
 class AdminsOfOrganization(APIView):

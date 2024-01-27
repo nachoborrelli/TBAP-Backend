@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import User, SEX_CHOICES
+from users.models import User
 from organization.models import Organization
 
 

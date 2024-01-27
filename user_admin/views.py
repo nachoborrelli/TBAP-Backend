@@ -17,9 +17,6 @@ from user_admin.models import AdminCourses, InvitationToCourseAsUser, Course
 from organization.models import InvitationToBecameUserAdmin,Organization
 from organization.serializers import InvitationToBecameUserAdminSerializer
 
-from blockchain.models import TokenGroup
-from blockchain.serializers import TokenGroupSerializer
-
 from user_admin.models import Admin
 
 
