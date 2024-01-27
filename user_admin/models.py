@@ -1,3 +1,7 @@
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
 from django.db import models
 from users.models import User
 from organization.models import Organization
@@ -12,6 +16,12 @@ class Course(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='courses')
+
+    def at_least_one_claimed(self):
+        for token in self.tokens.all():
+            if token.at_least_one_claimed():
+                return True
+        return False
 
 
 class AdminCourses(models.Model):
@@ -52,3 +62,10 @@ class InvitationToCourseAsUser(models.Model):
 #     class Meta:
 #         verbose_name = 'Invitation to Course as Admin'
 #         verbose_name_plural = 'Invitations to Courses as Admins'
+        
+
+# @receiver(post_delete, sender=Course)
+# def delete_admins_courses(sender, instance, **kwargs):
+#     AdminCourses.objects.filter(course=instance).delete()
+
+    

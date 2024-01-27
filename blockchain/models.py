@@ -11,6 +11,9 @@ class TokenGroup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='token_groups')
 
+    def at_least_one_claimed(self):
+        return self.user_tokens.filter(is_claimed=True).exists()
+
 class UserToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_tokens') 
     token_group = models.ForeignKey(TokenGroup, on_delete=models.CASCADE, related_name='user_tokens')
