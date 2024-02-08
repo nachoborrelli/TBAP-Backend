@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
 
 class User(AbstractUser):
     # add additional fields in here
@@ -33,3 +32,10 @@ class TokenRecovery(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=6, default='')
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+# @receiver(post_save, sender=User)
+# def create_user_profile(sender, instance, created, **kwargs):
+#     from regular_user.models import UserProfile
+#     if created and not hasattr(instance, 'user_profile'):
+#         UserProfile.objects.create(user=instance)
