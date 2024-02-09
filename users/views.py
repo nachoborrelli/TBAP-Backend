@@ -6,27 +6,35 @@ from django.utils.translation import gettext_lazy as _
 from users.serializers import UserSerializer
 from regular_user.serializers import UserProfileSerializer
 from users.models import User
-from users.utils import get_user_email, create_user_without_password
+from users.utils import get_user_data, create_user_without_password
 
 from rest_framework.authtoken.models import Token
+
 
 class RecepcionOauthView(APIView):
     def post(self, request):
         data = request.data
         if "accessToken" not in data:
             return Response(
-                {"error": _("accessToken is required")}, status=status.HTTP_400_BAD_REQUEST
+                {"error": _("accessToken is required")},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         access_token = data["accessToken"]
-        email = get_user_email(access_token)
-        print("email", email)
+        data = get_user_data(access_token)
+        email = data.get("email")
         if User.objects.filter(email=email).exists():
             user = User.objects.get(email=email)
         else:
             user = create_user_without_password(email)
+            if "first_name" in data:
+                user.first_name = data["first_name"]
+            if "last_name" in data:
+                user.last_name = data["last_name"]
+            user.save()
 
         # login
         token, created = Token.objects.get_or_create(user=user)  # access token
+
         return Response({"token": str(token.key)}, status=status.HTTP_200_OK)
 
 
