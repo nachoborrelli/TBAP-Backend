@@ -32,7 +32,6 @@ def get_reward_overview_from_uri(user_token_id):
     data = None
     try:
         data = execute_function("tokenOfURI",str(user_token_id))
-        print("DATA:", data)
     except Exception as e:
         if e == "ERC721URIStorage: URI query for nonexistent token":
             pass
@@ -59,6 +58,6 @@ def get_token_from_uri(uri):
 
 def create_uri_from_id(id):
     return BASE_URL + "/api/blockchain/uri/" + str(id)
-# print(get_parsed_rewards_data_for_address("0xf1dD71895e49b1563693969de50898197cDF3481"))
+# print(get_rewards_data_for_address("0xf17f52151EbEF6C7334FAD080c5704D77216b732"))
 # print(get_reward_overview(100))
-# print(get_reward_overview_from_uri('11'))
+# print(get_reward_overview_from_uri('12'))

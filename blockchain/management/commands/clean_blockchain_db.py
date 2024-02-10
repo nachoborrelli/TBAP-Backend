@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from blockchain.models import UserToken, TokenGroup, Signature
+from blockchain.models import UserToken, Signature
 
 class Command(BaseCommand):
     help = 'Execute to perform custom database operations. Located in /blockchain/management/commands/db_ops_script.py'
