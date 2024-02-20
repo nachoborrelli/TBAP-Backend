@@ -109,8 +109,6 @@ class TokenGroupView(APIView):
             data = request.data.copy()
             if not 'course_id' in data:
                 return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-            if not 'users' in data:
-                return Response({'error': 'users is required'}, status=status.HTTP_400_BAD_REQUEST)
             
             course_id = data.get('course_id')
             course = get_object_or_404(Course, id=course_id)
@@ -119,7 +117,7 @@ class TokenGroupView(APIView):
                     (request.user.is_organization and request.user.organization == course.organization)):
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             
-            users = data.pop('users')
+            users = data.get('users', [])
             if users == 'all':
                 users = UserCourses.objects.filter(course=course).values_list('user', flat=True)
             else:
@@ -173,6 +171,19 @@ class TokenGroupDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request, pk):
+            try:
+                token_group_id = pk
+                token_group = get_object_or_404(TokenGroup, id=token_group_id)
+                if not (AdminCourses.objects.filter(admin__user=request.user, course=token_group.course).exists() or\
+                        (request.user.is_organization and request.user.organization == token_group.course.organization)):
+                    return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+                
+                token_group.delete()
+                return Response({'message': 'Token group deleted successfully'}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TokenClaims(APIView):
     permission_classes = (IsAuthenticated,)
