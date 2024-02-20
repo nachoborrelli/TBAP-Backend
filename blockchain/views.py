@@ -7,6 +7,7 @@ from blockchain import utils, repository
 
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from user_admin.models import AdminCourses, Course
 from user_admin.serializers import TokenUriCourseSerializer
@@ -16,7 +17,7 @@ from regular_user.models import UserCourses
 from blockchain.models import TokenGroup, UserToken, Signature
 from blockchain.serializers import BlockchainTokenSerializer, TokenGroupSerializer, \
     TokenGroupSerializerList, SignatureSerializer, UriUserTokenSerializer, \
-    UserTokenSerializer, TokenUriRequestSerializer
+    UserTokenSerializer, TokenUriRequestSerializer, UserTokenParamsSerializer
 
 class UserTokenView(APIView):
     """
@@ -31,15 +32,22 @@ class UserTokenView(APIView):
         try:
             if not request.user.user_profile.wallet_address:
                 return Response({'error': 'You must have a wallet address to do this'}, status=status.HTTP_400_BAD_REQUEST)
-            course_id = request.GET.get('course_id', None)
-            page = request.GET.get('page', 1)
-            is_claimed = request.GET.get('is_claimed', True)
+            serializer= UserTokenParamsSerializer(data=request.GET)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            validated_data = serializer.validated_data
             utils.update_user_tokens_and_signatures_in_db(request.user)
 
-            user_tokens = UserToken.objects.filter(user=request.user, is_claimed=is_claimed)
-            if course_id:
+            filter = Q(user=request.user)
+            page = serializer.data['page']
+            if 'is_claimed' in validated_data:
+                is_claimed = validated_data['is_claimed']
+                filter &= Q(is_claimed=is_claimed) if is_claimed != None else Q()
+            if 'course_id' in validated_data:
+                course_id = validated_data['course_id']
                 course = get_object_or_404(Course, id=course_id)
-                user_tokens = user_tokens.filter(token_group__course=course)
+                filter &= Q(token_group__course=course)
+            user_tokens = UserToken.objects.filter(filter).order_by('-created_at')
 
             paginator = Paginator(user_tokens, 6)
 
@@ -146,7 +154,6 @@ class TokenGroupView(APIView):
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 class TokenGroupDetailView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -167,12 +174,10 @@ class TokenGroupDetailView(APIView):
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 class TokenClaims(APIView):
     permission_classes = (IsAuthenticated,)
     def get (self, request):
         """Return pending signatures for the user"""
-        
         pending_signature = Signature.objects.filter(user=request.user, was_used=False).first()
         if pending_signature:
             serializer = SignatureSerializer(pending_signature)

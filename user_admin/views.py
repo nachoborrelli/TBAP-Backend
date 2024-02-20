@@ -310,12 +310,7 @@ class SendInvitationToJoinCourseAsUser(APIView):
                 is_already_in_errors = []
 
                 emails_file = request.FILES['emails']
-
-                print("emails_file", emails_file)
-                
-                
                 pre_emails = self.get_email_list(emails_file)
-                print("pre_emails", pre_emails)
                 # pre_emails = []
                 
                 for email in pre_emails:

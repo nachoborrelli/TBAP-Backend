@@ -7,6 +7,7 @@ from blockchain.models import TokenGroup, Signature, UserToken
 
 class TokenGroupSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course.name', read_only=True)
+    #Devolver lista de user token id, user id, is_claimed, created_at
     class Meta:
         model = TokenGroup
         fields = '__all__'
@@ -29,8 +30,8 @@ class SignatureSerializer(serializers.ModelSerializer):
         fields = ['id', 'nonce', 'signature', 'user', 'title', 'issuerId', 'uri', 'organization', 'token_name', 'pending']
     
     def get_pending(self, obj):
-        """return value or return False as default"""
-        return getattr(obj, 'pending', False)
+        """pending is true if the signature was not used, false otherwise"""
+        return not(getattr(obj, 'was_used'))
 
     def to_representation(self, instance):
         self.fields.pop('organization')
@@ -74,33 +75,7 @@ class TokenMixedSerializer(serializers.Serializer):
     course = CourseSerializer(source='db_token.token_group.course')
     organization = OrganizationSerializer(source='db_token.token_group.course.organization')
 
-# {
-    # token: {db_object, blockchain_data}
-    # course: {db_object}
-    # organization: {db_object}
-# }
-
-    # def get_token(self, obj):
-    #     # Assuming `obj` is an instance of UserToken
-    #     return {
-    #         'tokenId': obj.tokenId,
-    #         'title': obj.blockchain_data['title'],  # Replace with actual field names
-    #         'issuerId': obj.blockchain_data['issuerId'],
-    #         'createdAt': obj.blockchain_data['createdAt'],
-    #         'uri': obj.blockchain_data['uri'],
-    #         'description': obj.token_group.description,
-    #         'image': obj.token_group.image.url if obj.token_group.image else None
-    #     }
-
-    # def get_course(self, obj):
-    #     return {
-    #         'name': obj.token_group.course.name,
-    #         'description': obj.token_group.course.description
-    #     }
-
-    # def get_organization(self, obj):
-    #     return {
-    #         'name': obj.token_group.course.organization.name,
-    #         'description': obj.token_group.course.organization.description,
-    #         'logo': obj.token_group.course.organization.logo.url if obj.token_group.course.organization.logo else None
-    #     }
+class UserTokenParamsSerializer(serializers.Serializer):
+    is_claimed = serializers.BooleanField(required=False, allow_null=True, default=None)
+    course_id = serializers.IntegerField(required=False)
+    page = serializers.IntegerField(default=1)

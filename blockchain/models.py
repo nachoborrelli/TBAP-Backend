@@ -24,6 +24,15 @@ class UserToken(models.Model):
     def get_organization(self):
         return self.token_group.course.organization
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user': self.user.id,
+            'token_group': self.token_group.id,
+            'created_at': self.created_at,
+            'is_claimed': self.is_claimed,
+            'tokenId': self.tokenId
+        }
 class Signature(models.Model):
     nonce = models.IntegerField()
     signature = models.TextField()
