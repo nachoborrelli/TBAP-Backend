@@ -7,13 +7,8 @@ from blockchain.models import TokenGroup, Signature, UserToken
 
 
 class TokenGroupSerializer(serializers.ModelSerializer):
-<<<<<<< HEAD
     course_name = serializers.CharField(source='course.name', read_only=True)
     #Devolver lista de user token id, user id, is_claimed, created_at
-=======
-    course_name = serializers.CharField(source="course.name", read_only=True)
-
->>>>>>> 8bbb901a8fd79b28c4a5833ce67e5ca444c606f3
     class Meta:
         model = TokenGroup
         fields = "__all__"
