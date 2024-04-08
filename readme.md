@@ -18,6 +18,10 @@ docker compose up --build
 
 Esto instalará todas las dependecias del proyecto y encenderá el backend en el la url 0.0.0.0:8000 del host local. Es importante notar que el sistema posee certificados SSL locales para la demostracion de inicio de sesion con agentes externos, pero es solo con fines de prueba.
 
+A continuacion se deja acceso a la estructura de la API en [postman](https://www.postman.com/).
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://documenter.getpostman.com/view/29636732/2s9YsFDZc4)
+
 
 ## Creadores
 - [Juan Ignacio Borrelli](https://www.linkedin.com/in/juan-ignacio-borrelli/)
