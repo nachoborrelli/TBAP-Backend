@@ -77,8 +77,8 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -229,7 +229,7 @@ JWT_SECRET = SECRET_KEY  # use settings secret key for JWT secret
 JWT_ALGORITHM = 'HS256'
 
 REST_AUTH_REGISTER_SERIALIZERS = {
-        'REGISTER_SERIALIZER': 'users.register_serializers.RegisterSerializer',
+    'REGISTER_SERIALIZER': 'users.register_serializers.RegisterSerializer',
 }
 
 #<------------Cors------------>
@@ -238,7 +238,8 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 #     'http://localhost:8000',
 #     'http://127.0.0.1:8000',
 #     'http://127.0.0.1:3000',
-#     'http://localhost',
+#     'http://localhost:3000',
+#     'https://localhost:8080',
 # ]
 
 # CORS_ORIGIN_WHITELIST = [
@@ -246,7 +247,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 #     'http://127.0.0.1:8000',
 #     'http://localhost:8000',
 #     'http://localhost:3000',
-#     'http://localhost',
+#     'https://localhost:3000',
 # ]
 
 CORS_ORIGIN_ALLOW_ALL = True

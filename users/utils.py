@@ -10,10 +10,10 @@ def get_random_string(length):
     return result_str
 
 
-def get_user_email(access_token, url='https://127.0.0.1:8001/userinfo/'):
+def get_user_data(access_token, url='https://127.0.0.1:8001/userinfo/'):
     headers = {'Authorization': f'Bearer {access_token}'}
     r = requests.get(url, headers=headers, verify=False)
-    return r.json()['email']
+    return r.json()
 
 
 def create_user_without_password(username):

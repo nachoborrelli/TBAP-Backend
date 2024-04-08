@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail 
 from django_base.settings import EMAIL_HOST_USER
+from rest_framework.decorators import action
 
 from user_admin.serializers import InvitationToCourseAsUserSerializer
 from user_admin.serializers import CourseSerializer, CoursesForAdminSerializer
@@ -115,6 +116,46 @@ class CourseView(APIView):
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
+
+class CourseDeleteView(APIView):
+    """
+    get: return if a course is deletable or not
+    delete: delete a course only if there is no userToken associated with it
+    """
+    permission_classes = (IsAdmin,)
+
+    def get(self, request):
+        try:
+            if not 'course_id' in request.query_params:
+                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            course_id = request.query_params.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            if course.at_least_one_claimed():
+                deletable = False
+            else:
+                deletable = True
+
+            return Response({'deletable': deletable}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request):
+        try:
+            if not 'course_id' in request.data:
+                return Response({'error': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+            course_id = request.data.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            if not AdminCourses.objects.filter(admin__user=request.user, course=course).exists():
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            if course.at_least_one_claimed():
+                return Response({'error': 'This course has tokens claim so you cannot delete it'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            course.delete()
+            return Response({'message': 'Course deleted successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UsersInCourseView(APIView):
@@ -269,12 +310,7 @@ class SendInvitationToJoinCourseAsUser(APIView):
                 is_already_in_errors = []
 
                 emails_file = request.FILES['emails']
-
-                print("emails_file", emails_file)
-                
-                
                 pre_emails = self.get_email_list(emails_file)
-                print("pre_emails", pre_emails)
                 # pre_emails = []
                 
                 for email in pre_emails:

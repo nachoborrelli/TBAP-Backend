@@ -65,7 +65,7 @@ def update_user_tokens_and_signatures_in_db(user):
 
     blockchain_data = get_parsed_rewards_data_for_address(user.user_profile.wallet_address)
     for blockchain_token in blockchain_data:
-        print(blockchain_token)
+        print("Function: update_user_tokens_and_signatures_in_db", blockchain_token)
         user_token_id= get_id_from_uri(blockchain_token['uri'])
         user_token = UserToken.objects.get(id=user_token_id)
         if user_token:
@@ -82,10 +82,9 @@ def update_single_token_and_signature_in_bd(db_token):
     it's data has yet not been persisted in the database. 
     Update it's user signature as well"""
     # TODO: complete function and call it from blockchain.views.TokenURI
-    from blockchain.repository import get_reward_overview
+    from blockchain.repository import get_reward_overview_from_uri
     from blockchain.models import Signature
-
-    blockchain_token = get_reward_overview(db_token.id)
+    blockchain_token = get_reward_overview_from_uri(db_token.id)
     if blockchain_token:
         db_token.tokenId = blockchain_token['tokenId']
         db_token.is_claimed = True
@@ -94,4 +93,5 @@ def update_single_token_and_signature_in_bd(db_token):
         if signature:
             signature.was_used = True
             signature.save()
+    print("DB TOKEN", db_token.to_dict())
     return True

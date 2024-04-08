@@ -1,7 +1,7 @@
 from django.urls import path
 
 from users.register_views import PasswordRecoveryEmailSend, CheckToken, PasswordRecoveryConfirm,PasswordChangeViewModify
-from users.views import UserProfileMe, LoginView, RecepcionOauthView
+from users.views import UserProfileMe, RecepcionOauthView
 
 
 urlpatterns = [
@@ -13,7 +13,6 @@ urlpatterns = [
 
     # User management
     path('me/', UserProfileMe.as_view(), name='user_profile_me'),
-    path('login/', LoginView.as_view(), name='login'),
-    path('oauth/', RecepcionOauthView.as_view(), name='oauth'),
+    path('get-token-by-oauth/', RecepcionOauthView.as_view(), name='oauth'),
 
 ]

@@ -11,6 +11,9 @@ class TokenGroup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='token_groups')
 
+    def at_least_one_claimed(self):
+        return self.user_tokens.filter(is_claimed=True).exists()
+
 class UserToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_tokens') 
     token_group = models.ForeignKey(TokenGroup, on_delete=models.CASCADE, related_name='user_tokens')
@@ -21,6 +24,15 @@ class UserToken(models.Model):
     def get_organization(self):
         return self.token_group.course.organization
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user': self.user.id,
+            'token_group': self.token_group.id,
+            'created_at': self.created_at,
+            'is_claimed': self.is_claimed,
+            'tokenId': self.tokenId
+        }
 class Signature(models.Model):
     nonce = models.IntegerField()
     signature = models.TextField()
