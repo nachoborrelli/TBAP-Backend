@@ -72,7 +72,6 @@ class CourseView(APIView):
     View to create and list courses
     get: return all courses that the user is admin
     post: create a new course
-    # TODO: put: update a course
     """
     permission_classes = (IsAdmin,)
 
@@ -175,9 +174,12 @@ class UsersInCourseView(APIView):
                 and not (request.user.is_organization and request.user.organization == course.organization):
                 return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
             page = request.GET.get('page', 1)
+            per_page = request.GET.get('per_page', 6)
 
             invitations = InvitationToCourseAsUser.objects.filter(course=course)
-            paginator = Paginator(invitations, 6)
+            if inv_status := request.GET.get('status', None):
+                invitations = invitations.filter(status=inv_status)
+            paginator = Paginator(invitations, per_page)
             serializer = InvitationToCourseAsUserSerializer(paginator.page(page), many=True)
 
             return Response({

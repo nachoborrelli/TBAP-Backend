@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from user_admin.models import Admin, Course, AdminCourses, InvitationToCourseAsUser
 from users.serializers import UserSerializer
+from users.models import User
 
 class AdminSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -44,7 +45,14 @@ class CoursesForAdminSerializer(serializers.ModelSerializer):
 
 class InvitationToCourseAsUserSerializer(serializers.ModelSerializer):
     course = CourseSerializer()
+    user_id = serializers.SerializerMethodField()
     class Meta:
         model = InvitationToCourseAsUser
         fields = '__all__'
         read_only_fields = ('status', 'created_at')
+
+    def get_user_id(self, obj):
+        try:
+            return User.objects.get(email=obj.email).id 
+        except User.DoesNotExist:
+            return None

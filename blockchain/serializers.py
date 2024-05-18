@@ -7,11 +7,30 @@ from blockchain.models import TokenGroup, Signature, UserToken
 
 
 class TokenGroupSerializer(serializers.ModelSerializer):
-    course_name = serializers.CharField(source='course.name', read_only=True)
-    #Devolver lista de user token id, user id, is_claimed, created_at
+    course_name = serializers.CharField(source="course.name", read_only=True)
+    users = serializers.SerializerMethodField()
+    deleteable = serializers.SerializerMethodField()
+
     class Meta:
         model = TokenGroup
         fields = "__all__"
+
+    def get_users(self, obj):
+        users = []
+        for user in obj.user_tokens.all():
+            users.append(
+                {
+                    "id": user.id,
+                    "user_id": user.user.id,
+                    "email": user.user.email,
+                    "created_at": user.created_at,
+                    "is_claimed": user.is_claimed,
+                }
+            )
+        return users
+
+    def get_deleteable(self, obj):
+        return not obj.at_least_one_claimed()
 
 
 class TokenGroupSerializerList(serializers.ModelSerializer):
@@ -54,6 +73,20 @@ class SignatureSerializer(serializers.ModelSerializer):
         self.fields.pop("organization")
         self.fields.pop("token_name")
         return super().to_representation(instance)
+
+
+class UserTokenCreatorSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserToken
+        fields = ["id", "token_group", "user"]
+
+    def validate(self, attrs):
+        if UserToken.objects.filter(
+            user=attrs["user"], token_group=attrs["token_group"]
+        ).exists():
+            raise serializers.ValidationError("User already has this token")
+        return super().validate(attrs)
 
 
 class UserTokenSerializer(serializers.ModelSerializer):

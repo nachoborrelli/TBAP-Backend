@@ -17,7 +17,8 @@ from regular_user.models import UserCourses
 from blockchain.models import TokenGroup, UserToken, Signature
 from blockchain.serializers import BlockchainTokenSerializer, TokenGroupSerializer, \
     TokenGroupSerializerList, SignatureSerializer, UriUserTokenSerializer, \
-    UserTokenSerializer, TokenUriRequestSerializer, UserTokenParamsSerializer
+    UserTokenSerializer, TokenUriRequestSerializer, UserTokenCreatorSerializer, \
+    UserTokenCreatorSerializer
 
 class UserTokenView(APIView):
     """
@@ -63,6 +64,51 @@ class UserTokenView(APIView):
         
         except Exception as e:
             return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            token_group = get_object_or_404(TokenGroup, id=request.data.get('token_group'))
+            course = token_group.course
+            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization == course.organization)):
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = UserTokenCreatorSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'message': 'User token created successfully',
+                    'data': serializer.data
+                    }, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def delete(self, request):
+        try:
+            if not 'user_token' in request.data:
+                return Response({'error': 'user_token is required'}, status=status.HTTP_400_BAD_REQUEST)
+            user_token_id = request.data.get('user_token')
+            user_token = get_object_or_404(UserToken, id=user_token_id)
+
+            course = user_token.token_group.course
+            if not (AdminCourses.objects.filter(admin__user=request.user, course=course).exists() or\
+                    (request.user.is_organization and request.user.organization == course.organization)):
+                return Response({'error': 'You are not allowed to do this'}, status=status.HTTP_403_FORBIDDEN)
+            
+            if user_token.is_claimed:
+                return Response({'error': 'Token already claimed'}, status=status.HTTP_400_BAD_REQUEST)
+            
+
+            
+            user_token.delete()
+            return Response({'message': 'User token deleted successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class TokenGroupView(APIView):
     """
