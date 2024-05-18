@@ -18,7 +18,7 @@ from blockchain.models import TokenGroup, UserToken, Signature
 from blockchain.serializers import BlockchainTokenSerializer, TokenGroupSerializer, \
     TokenGroupSerializerList, SignatureSerializer, UriUserTokenSerializer, \
     UserTokenSerializer, TokenUriRequestSerializer, UserTokenCreatorSerializer, \
-    UserTokenCreatorSerializer
+    UserTokenParamsSerializer
 
 class UserTokenView(APIView):
     """
