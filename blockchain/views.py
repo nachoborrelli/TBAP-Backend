@@ -30,7 +30,7 @@ class UserTokenView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        try:
+        # try:
             if not request.user.user_profile.wallet_address:
                 return Response({'error': 'You must have a wallet address to do this'}, status=status.HTTP_400_BAD_REQUEST)
             serializer= UserTokenParamsSerializer(data=request.GET)
@@ -62,8 +62,8 @@ class UserTokenView(APIView):
                 },
                 status=status.HTTP_200_OK)
         
-        except Exception as e:
-            return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except Exception as e:
+        #     return Response({'error': 'Something went wrong', 'e': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
         try:

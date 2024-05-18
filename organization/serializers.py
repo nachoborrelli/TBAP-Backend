@@ -14,8 +14,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at')
 
 class InvitationToBecameUserAdminSerializer(serializers.ModelSerializer):
+    organization_name = serializers.SerializerMethodField()
     class Meta:
         model = InvitationToBecameUserAdmin
         fields = '__all__'
         read_only_fields = ('id', 'created_at')
 
+    def get_organization_name(self, obj):
+        return obj.organization.name

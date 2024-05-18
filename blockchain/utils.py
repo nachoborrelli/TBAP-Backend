@@ -32,7 +32,7 @@ def get_address_from_signature(signature, message = None):
         message = "Welcome to TBAP!\n\nThis is just a signed message to verify your identity.\n\nThis request will not trigger a blockchain transaction or cost any gas fees."
     message = encode_defunct(text=message)
     verification = Account.recover_message(message,signature=signature)
-    return verification
+    return verification 
 
 def create_mint_signature(title, issuerId, nonce, uri):
     """ 
